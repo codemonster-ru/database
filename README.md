@@ -96,6 +96,41 @@ $bindings = $db->table('users')
     ->getBindings();
 ```
 
+### Transactions
+
+You can execute multiple operations atomically using transactions:
+
+```php
+$db->transaction(function ($db) {
+    $db->table('users')->insert([
+        'name' => 'Vasya',
+        'email' => 'test@example.com',
+    ]);
+
+    $db->table('logs')->insert([
+        'message' => 'User created',
+        'created_at' => date('Y-m-d H:i:s'),
+    ]);
+});
+```
+
+This is equivalent to:
+
+```php
+$db->beginTransaction();
+
+try {
+    $db->table('users')->insert([...]);
+    $db->table('logs')->insert([...]);
+
+    $db->commit();
+} catch (\Throwable $e) {
+    $db->rollBack();
+
+    throw $e;
+}
+```
+
 ## 👨‍💻 Author
 
 [**Kirill Kolesnikov**](https://github.com/KolesnikovKirill)
@@ -103,3 +138,7 @@ $bindings = $db->table('users')
 ## 📜 License
 
 [MIT](https://github.com/codemonster-ru/database/blob/main/LICENSE)
+
+```
+
+```

@@ -7,6 +7,7 @@ use Codemonster\Database\Exceptions\QueryException;
 use Codemonster\Database\Query\QueryBuilder;
 use PDO;
 use PDOException;
+use Throwable;
 
 class Connection implements ConnectionInterface
 {
@@ -84,5 +85,37 @@ class Connection implements ConnectionInterface
     public function table(string $table): QueryBuilder
     {
         return new QueryBuilder($this, $table);
+    }
+
+    public function beginTransaction(): bool
+    {
+        return $this->pdo->beginTransaction();
+    }
+
+    public function commit(): bool
+    {
+        return $this->pdo->commit();
+    }
+
+    public function rollBack(): bool
+    {
+        return $this->pdo->rollBack();
+    }
+
+    public function transaction(callable $callback): mixed
+    {
+        $this->beginTransaction();
+
+        try {
+            $result = $callback($this);
+
+            $this->commit();
+
+            return $result;
+        } catch (Throwable $e) {
+            $this->rollBack();
+
+            throw $e;
+        }
     }
 }
