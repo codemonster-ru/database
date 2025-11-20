@@ -16,6 +16,8 @@ composer require codemonster-ru/database
 
 ## 🚀 Usage
 
+### Raw SQL (basic usage)
+
 ```php
 use Codemonster\Database\DatabaseManager;
 
@@ -38,10 +40,41 @@ $db = $manager->connection();
 $users = $db->select("SELECT * FROM users WHERE active = ?", [1]);
 ```
 
+### Query Builder (SELECT)
+
+```php
+$users = $db->table('users')
+    ->select('id', 'name', 'email')
+    ->where('active', 1)
+    ->orderBy('created_at', 'desc')
+    ->limit(10)
+    ->get();
+```
+
+### Get a single row
+
+```php
+$user = $db->table('users')
+    ->where('id', 5)
+    ->first();
+```
+
+### Debug SQL
+
+```php
+$sql = $db->table('users')
+    ->where('active', 1)
+    ->toSql();
+
+$bindings = $db->table('users')
+    ->where('active', 1)
+    ->getBindings();
+```
+
 ## 👨‍💻 Author
 
 [**Kirill Kolesnikov**](https://github.com/KolesnikovKirill)
 
 ## 📜 License
 
-[MIT](https://github.com/codemonster-ru/router/blob/main/LICENSE)
+[MIT](https://github.com/codemonster-ru/database/blob/main/LICENSE)

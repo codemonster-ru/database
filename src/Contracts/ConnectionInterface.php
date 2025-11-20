@@ -2,6 +2,8 @@
 
 namespace Codemonster\Database\Contracts;
 
+use Codemonster\Database\Query\QueryBuilder;
+
 interface ConnectionInterface
 {
     public function select(string $query, array $params = []): array;
@@ -17,4 +19,6 @@ interface ConnectionInterface
     public function statement(string $query, array $params = []): bool;
 
     public function getPdo(): \PDO;
+
+    public function table(string $table): QueryBuilder;
 }

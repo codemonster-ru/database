@@ -4,6 +4,7 @@ namespace Codemonster\Database;
 
 use Codemonster\Database\Contracts\ConnectionInterface;
 use Codemonster\Database\Exceptions\QueryException;
+use Codemonster\Database\Query\QueryBuilder;
 use PDO;
 use PDOException;
 
@@ -39,6 +40,7 @@ class Connection implements ConnectionInterface
     public function selectOne(string $query, array $params = []): ?array
     {
         $result = $this->run($query, $params)->fetch();
+
         return $result ?: null;
     }
 
@@ -77,5 +79,10 @@ class Connection implements ConnectionInterface
     public function getPdo(): PDO
     {
         return $this->pdo;
+    }
+
+    public function table(string $table): QueryBuilder
+    {
+        return new QueryBuilder($this, $table);
     }
 }
