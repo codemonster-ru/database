@@ -21,4 +21,12 @@ interface ConnectionInterface
     public function getPdo(): \PDO;
 
     public function table(string $table): QueryBuilder;
+
+    public function beginTransaction(): bool;
+
+    public function commit(): bool;
+
+    public function rollBack(): bool;
+
+    public function transaction(callable $callback): mixed;
 }

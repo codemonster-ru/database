@@ -2,6 +2,18 @@
 
 All significant changes to this project will be documented in this file.
 
+## [0.4.0] - 2025-11-21
+
+### Added
+
+-   Transaction support in `Connection` and `ConnectionInterface`.
+-   Added methods:
+-   `beginTransaction()`
+-   `commit()`
+-   `rollBack()`
+-   `transaction(callable $callback)`
+-   The `transaction()` method allows performing multiple operations within a single transaction with automatic `commit` or `rollback` on exception.
+
 ## [0.3.0] - 2025-11-21
 
 ### Added
