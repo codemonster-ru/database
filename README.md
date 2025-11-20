@@ -40,7 +40,7 @@ $db = $manager->connection();
 $users = $db->select("SELECT * FROM users WHERE active = ?", [1]);
 ```
 
-### Query Builder (SELECT)
+### Query Builder — SELECT
 
 ```php
 $users = $db->table('users')
@@ -51,12 +51,37 @@ $users = $db->table('users')
     ->get();
 ```
 
-### Get a single row
+### Query Builder — INSERT
 
 ```php
-$user = $db->table('users')
+$db->table('users')->insert([
+    'name' => 'Vasya',
+    'email' => 'test@example.com',
+]);
+
+// Insert and return ID
+$id = $db->table('ideas')->insertGetId([
+    'title' => 'New idea',
+]);
+```
+
+### Query Builder — UPDATE
+
+```php
+$db->table('users')
     ->where('id', 5)
-    ->first();
+    ->update([
+        'active' => 0,
+        'updated_at' => date('Y-m-d H:i:s'),
+    ]);
+```
+
+### Query Builder — DELETE
+
+```php
+$db->table('sessions')
+    ->where('user_id', 10)
+    ->delete();
 ```
 
 ### Debug SQL
