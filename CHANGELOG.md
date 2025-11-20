@@ -2,6 +2,21 @@
 
 All significant changes to this project will be documented in this file.
 
+## [0.2.0] – 2025-11-20
+
+### Added
+
+-   Implemented basic `QueryBuilder`:
+-   `table()` for creating a new builder
+-   `select()` for specifying selectable columns
+-   `where()` / `orWhere()` for conditions
+-   `orderBy()` for sorting
+-   `limit()` and `offset()` for pagination
+-   `get()` and `first()` for executing SELECT queries
+-   `toSql()` and `getBindings()` for debugging
+-   Added the `table()` method to `Connection` and `ConnectionInterface`.
+-   Support for building SQL with placeholders and automatic bindings.
+
 ## [0.1.0] – 2025-11-19
 
 ### Added
