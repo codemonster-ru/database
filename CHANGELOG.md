@@ -2,6 +2,22 @@
 
 All significant changes to this project will be documented in this file.
 
+## [0.3.0] - 2025-11-21
+
+### Added
+
+-   Implemented support for `INSERT`, `UPDATE`, and `DELETE` in `QueryBuilder`.
+-   Added new methods:
+-   `insert(array $values)` — insert a row.
+-   `insertGetId(array $values)` — insert a row and return its ID.
+-   `update(array $values)` — update rows based on conditions.
+-   `delete()` — delete rows.
+-   Implemented SQL compilers:
+-   `compileInsert()`
+-   `compileUpdate()`
+-   `compileDelete()`
+-   Added internal binding extensions, including WHERE, ORDER BY, and LIMIT/OFFSET handling for updates and deletes.
+
 ## [0.2.0] – 2025-11-20
 
 ### Added

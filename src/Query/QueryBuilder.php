@@ -7,11 +7,17 @@ use Codemonster\Database\Contracts\ConnectionInterface;
 class QueryBuilder
 {
     protected ConnectionInterface $connection;
+
     protected string $table;
+
     protected array $columns = ['*'];
+
     protected array $wheres = [];
+
     protected array $orders = [];
+
     protected ?int $limit = null;
+
     protected ?int $offset = null;
 
     public function __construct(ConnectionInterface $connection, string $table)
@@ -112,6 +118,90 @@ class QueryBuilder
         return $this->compileSelect()[1];
     }
 
+    public function insert(array $values): bool
+    {
+        [$sql, $bindings] = $this->compileInsert($values);
+
+        return $this->connection->insert($sql, $bindings);
+    }
+
+    public function insertGetId(array $values): int
+    {
+        [$sql, $bindings] = $this->compileInsert($values);
+
+        $this->connection->insert($sql, $bindings);
+
+        return (int) $this->connection->getPdo()->lastInsertId();
+    }
+
+    protected function compileInsert(array $values): array
+    {
+        $columns = array_keys($values);
+
+        $wrapped = implode(', ', array_map([$this, 'wrapColumn'], $columns));
+
+        $placeholders = rtrim(str_repeat('?, ', count($values)), ', ');
+
+        $sql = sprintf(
+            'INSERT INTO %s (%s) VALUES (%s)',
+            $this->wrapTable($this->table),
+            $wrapped,
+            $placeholders
+        );
+
+        return [$sql, array_values($values)];
+    }
+
+    public function update(array $values): int
+    {
+        [$sql, $bindings] = $this->compileUpdate($values);
+
+        return $this->connection->update($sql, $bindings);
+    }
+
+    protected function compileUpdate(array $values): array
+    {
+        $setParts = [];
+        $bindings = [];
+
+        foreach ($values as $column => $value) {
+            $setParts[] = $this->wrapColumn($column) . ' = ?';
+            $bindings[] = $value;
+        }
+
+        $sql = 'UPDATE ' . $this->wrapTable($this->table)
+            . ' SET ' . implode(', ', $setParts);
+
+        if (!empty($this->wheres)) {
+            [$whereSql, $whereBindings] = $this->compileWheres();
+            $sql .= ' WHERE ' . $whereSql;
+            $bindings = array_merge($bindings, $whereBindings);
+        }
+
+        return [$sql, $bindings];
+    }
+
+    public function delete(): int
+    {
+        [$sql, $bindings] = $this->compileDelete();
+
+        return $this->connection->delete($sql, $bindings);
+    }
+
+    protected function compileDelete(): array
+    {
+        $sql = 'DELETE FROM ' . $this->wrapTable($this->table);
+        $bindings = [];
+
+        if (!empty($this->wheres)) {
+            [$whereSql, $whereBindings] = $this->compileWheres();
+            $sql .= ' WHERE ' . $whereSql;
+            $bindings = $whereBindings;
+        }
+
+        return [$sql, $bindings];
+    }
+
     protected function compileSelect(): array
     {
         $sql = 'SELECT ' . $this->compileColumns()
@@ -156,12 +246,9 @@ class QueryBuilder
 
         foreach ($this->wheres as $index => $where) {
             $prefix = $index === 0 ? '' : ' ' . strtoupper($where['boolean']) . ' ';
-
             $sqlParts[] = $prefix
-                . $this->wrapColumn($where['column'])
-                . ' ' . $where['operator']
-                . ' ?';
-
+                . $this->wrapColumn($where['column']) . ' '
+                . $where['operator'] . ' ?';
             $bindings[] = $where['value'];
         }
 
@@ -173,7 +260,8 @@ class QueryBuilder
         $parts = [];
 
         foreach ($this->orders as $order) {
-            $parts[] = $this->wrapColumn($order['column']) . ' ' . strtoupper($order['direction']);
+            $parts[] = $this->wrapColumn($order['column'])
+                . ' ' . strtoupper($order['direction']);
         }
 
         return 'ORDER BY ' . implode(', ', $parts);
