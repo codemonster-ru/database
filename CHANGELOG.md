@@ -2,6 +2,45 @@
 
 All significant changes to this project will be documented in this file.
 
+## [0.7.0] – 2025-12-01
+
+### Added
+
+-   Major QueryBuilder upgrade:
+    -   Nested where-groups using closures
+    -   whereRaw(), orWhereRaw()
+    -   selectRaw(), orderByRaw()
+    -   whereIn / whereNotIn / whereBetween / whereNotBetween / whereNull / whereNotNull
+    -   JOIN system (innerJoin, leftJoin, rightJoin, crossJoin)
+    -   DISTINCT support
+    -   GROUP BY, HAVING, havingRaw()
+    -   Aggregates: count(), sum(), avg(), min(), max()
+    -   exists(), doesntExist()
+    -   value(), pluck(), forPage(), simplePaginate()
+-   Full SQL compiler implementation for:
+    -   joins
+    -   nested groups
+    -   raw expressions
+    -   complex conditions
+    -   between/not between
+    -   group/having order & priority
+-   Added `RawExpression` class to support raw SQL segments
+
+### Changed
+
+-   Reworked WHERE compiler (now supports full tree-based logic)
+-   Improved compileSelect() order: joins → where → group → having → order → limit → offset
+-   Normalized SQL generation for consistent MySQL output
+-   select() now accepts both strings and array of strings
+-   orderByRaw merged into unified ORDER BY compiler
+
+### Fixed
+
+-   DISTINCT, GROUP BY, HAVING now compiled correctly
+-   join() and whereRaw() functionality works fully
+-   BETWEEN and NOT BETWEEN handled properly
+-   ORDER BY raw expressions no longer wrapped incorrectly
+
 ## [0.6.0] – 2025-11-30
 
 ### Added
