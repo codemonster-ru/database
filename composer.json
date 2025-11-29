@@ -12,6 +12,9 @@
             "role": "Lead Developer"
         }
     ],
+    "bin": [
+        "bin/database"
+    ],
     "require": {
         "php": ">=8.2",
         "ext-pdo": "*"

@@ -5,8 +5,9 @@
 [![License](https://img.shields.io/packagist/l/codemonster-ru/database.svg?style=flat-square)](https://packagist.org/packages/codemonster-ru/database)
 [![Tests](https://github.com/codemonster-ru/database/actions/workflows/tests.yml/badge.svg)](https://github.com/codemonster-ru/database/actions/workflows/tests.yml)
 
-A lightweight database package built on top of PDO.
-Part of the Codemonster ecosystem, it's completely independent and can be used in any PHP project.
+A lightweight database package built on top of PDO.  
+Part of the Codemonster ecosystem — but completely independent and framework-agnostic.  
+Can be used standalone or integrated into Codemonster Annabel.
 
 ## 📦 Installation
 
@@ -16,12 +17,11 @@ composer require codemonster-ru/database
 
 ## 🚀 Usage
 
-### Raw SQL (basic usage)
+### 1. Database Manager
 
 ```php
 use Codemonster\Database\DatabaseManager;
 
-// Initialization example
 $manager = new DatabaseManager([
     'default' => 'mysql',
     'connections' => [
@@ -37,10 +37,11 @@ $manager = new DatabaseManager([
 ]);
 
 $db = $manager->connection();
-$users = $db->select("SELECT * FROM users WHERE active = ?", [1]);
 ```
 
-### Query Builder — SELECT
+### 2. Query Builder
+
+#### SELECT
 
 ```php
 $users = $db->table('users')
@@ -51,7 +52,7 @@ $users = $db->table('users')
     ->get();
 ```
 
-### Query Builder — INSERT
+#### INSERT
 
 ```php
 $db->table('users')->insert([
@@ -59,13 +60,12 @@ $db->table('users')->insert([
     'email' => 'test@example.com',
 ]);
 
-// Insert and return ID
 $id = $db->table('ideas')->insertGetId([
     'title' => 'New idea',
 ]);
 ```
 
-### Query Builder — UPDATE
+#### UPDATE
 
 ```php
 $db->table('users')
@@ -76,7 +76,7 @@ $db->table('users')
     ]);
 ```
 
-### Query Builder — DELETE
+#### DELETE
 
 ```php
 $db->table('sessions')
@@ -84,51 +84,135 @@ $db->table('sessions')
     ->delete();
 ```
 
-### Debug SQL
+#### Debug SQL
 
 ```php
-$sql = $db->table('users')
-    ->where('active', 1)
-    ->toSql();
-
-$bindings = $db->table('users')
-    ->where('active', 1)
-    ->getBindings();
+$sql = $db->table('users')->where('active', 1)->toSql();
+$bindings = $db->table('users')->where('active', 1)->getBindings();
 ```
 
-### Transactions
-
-You can execute multiple operations atomically using transactions:
+### 3. Transactions
 
 ```php
 $db->transaction(function ($db) {
-    $db->table('users')->insert([
-        'name' => 'Vasya',
-        'email' => 'test@example.com',
-    ]);
-
-    $db->table('logs')->insert([
-        'message' => 'User created',
-        'created_at' => date('Y-m-d H:i:s'),
-    ]);
+    $db->table('users')->insert([...]);
+    $db->table('logs')->insert([...]);
 });
 ```
 
-This is equivalent to:
+## 📐 Schema Builder
+
+The package includes a lightweight schema builder:
+
+### Creating a table
 
 ```php
-$db->beginTransaction();
+use Codemonster\Database\Schema\Blueprint;
 
-try {
-    $db->table('users')->insert([...]);
-    $db->table('logs')->insert([...]);
+$db->schema()->create('users', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->string('email')->unique();
+    $table->boolean('active')->default(1);
+    $table->timestamps();
+});
+```
 
-    $db->commit();
-} catch (\Throwable $e) {
-    $db->rollBack();
+### Modifying a table
 
-    throw $e;
-}
+```php
+$db->schema()->table('users', function (Blueprint $table) {
+    $table->string('avatar')->nullable();
+    $table->integer('age')->default(0);
+});
+```
+
+### Dropping a table
+
+```php
+$db->schema()->drop('users');
+```
+
+## 🗄 Supported Column Types
+
+-   `id`, `integer`, `bigInteger`, `mediumInteger`, `smallInteger`, `tinyInteger`
+-   `decimal`, `double`, `float`
+-   `string`, `char`, `text`, `mediumText`, `longText`
+-   `boolean`
+-   `json`
+-   `date`, `datetime`, `timestamp`, `time`, `year`
+-   `uuid`
+-   Indexes: `index`, `unique`, `primary`
+-   Foreign keys
+
+## 🚦 Migrations
+
+The package includes a full migration system with:
+
+-   `migrate`
+-   `migrate:rollback`
+-   `migrate:status`
+-   `make:migration`
+
+### Example migration
+
+```php
+return new class extends Migration {
+    public function up() {
+        schema()->create('posts', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+        });
+    }
+
+    public function down() {
+        schema()->drop('posts');
+    }
+};
+```
+
+## 🧰 Standalone CLI
+
+This package ships with its own CLI tool:
+
+```
+vendor/bin/database
+```
+
+### Running migrations
+
+```
+vendor/bin/database migrate
+```
+
+### Rollback
+
+```
+vendor/bin/database migrate:rollback
+```
+
+### Status
+
+```
+vendor/bin/database migrate:status
+```
+
+### Create a migration
+
+```
+vendor/bin/database make:migration CreatePostsTable
+```
+
+The CLI automatically uses:
+
+```
+./database/migrations
+```
+
+You can override paths via:
+
+```php
+$kernel->getPathResolver()->addPath('/path/to/migrations');
 ```
 
 ## 👨‍💻 Author
@@ -137,8 +221,4 @@ try {
 
 ## 📜 License
 
-[MIT](https://github.com/codemonster-ru/database/blob/main/LICENSE)
-
-```
-
-```
+[MIT](https://github.com/codemonster-ru/support/database/main/LICENSE)
