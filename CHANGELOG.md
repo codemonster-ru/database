@@ -2,6 +2,36 @@
 
 All significant changes to this project will be documented in this file.
 
+## [0.5.0] – 2025-11-29
+
+### Added
+
+-   Expanded Schema Builder with full support for MySQL data types:
+    -   Integer types: `bigInteger`, `mediumInteger`, `smallInteger`, `tinyInteger`
+    -   Decimal & floating types: `decimal`, `double`, `float`
+    -   String & text types: `char`, `mediumText`, `longText`
+    -   JSON type: `json`
+    -   Date & time types: `date`, `datetime`, `time`, `year`
+    -   UUID type: `uuid`
+-   Added modifier support for:
+    -   `unsigned`
+    -   `autoIncrement`
+    -   `comment`
+    -   `change()` for modifying existing columns
+
+### Changed
+
+-   Reworked `compileType()` in `MySqlGrammar` to support all new types.
+-   Updated `Blueprint` to include methods for new column types.
+-   Standardized Schema Builder to return array of SQL statements for all operations.
+-   Improved overall consistency of CREATE/ALTER/DROP SQL generation.
+
+### Fixed
+
+-   Removed obsolete `$commands` from `Blueprint`.
+-   Fixed handling of NOT NULL / NULL defaults.
+-   Correct handling of PRIMARY/UNIQUE via indexes instead of column modifiers.
+
 ## [0.4.0] - 2025-11-21
 
 ### Added
