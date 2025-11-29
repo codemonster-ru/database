@@ -91,6 +91,70 @@ $sql = $db->table('users')->where('active', 1)->toSql();
 $bindings = $db->table('users')->where('active', 1)->getBindings();
 ```
 
+#### Raw expressions
+
+```php
+$db->table('users')
+    ->selectRaw('COUNT(*) as total')
+    ->whereRaw('JSON_VALID(metadata)')
+    ->orderByRaw('FIELD(status, "new", "approved", "archived")')
+    ->get();
+```
+
+#### Join support
+
+```php
+$db->table('orders')
+    ->join('users', 'users.id', '=', 'orders.user_id')
+    ->leftJoin('payments', fn($join) =>
+        $join->on('payments.order_id', '=', 'orders.id')
+             ->where('payments.status', 'paid')
+    )
+    ->get();
+```
+
+#### Group By / Having
+
+```php
+$db->table('orders')
+    ->selectRaw('status, COUNT(*) as total')
+    ->groupBy('status')
+    ->having('total', '>', 10)
+    ->get();
+
+```
+
+#### Aggregates
+
+```php
+$count = $db->table('users')->count();
+$sum   = $db->table('orders')->sum('amount');
+$avg   = $db->table('ratings')->avg('score');
+$min   = $db->table('logs')->min('id');
+$max   = $db->table('visits')->max('duration');
+```
+
+#### Exists
+
+```php
+$db->table('users')->where('email', 'test@example.com')->exists();
+```
+
+#### Value / Pluck
+
+```php
+$email = $db->table('users')->where('id', 1)->value('email');
+
+$names = $db->table('users')->pluck('name');
+$pairs = $db->table('users')->pluck('email', 'id');
+```
+
+#### Pagination
+
+```php
+$page = $db->table('posts')->simplePaginate(20, $currentPage);
+```
+
 ### 3. Transactions
 
 ```php
