@@ -5,9 +5,8 @@
 [![License](https://img.shields.io/packagist/l/codemonster-ru/database.svg?style=flat-square)](https://packagist.org/packages/codemonster-ru/database)
 [![Tests](https://github.com/codemonster-ru/database/actions/workflows/tests.yml/badge.svg)](https://github.com/codemonster-ru/database/actions/workflows/tests.yml)
 
-A lightweight database package built on top of PDO.  
-Part of the Codemonster ecosystem — but completely independent and framework-agnostic.  
-Can be used standalone or integrated into Codemonster Annabel.
+A lightweight, framework-agnostic database layer for PHP.  
+Part of the Codemonster ecosystem — but works fully standalone.
 
 ## 📦 Installation
 
@@ -87,8 +86,9 @@ $db->table('sessions')
 #### Debug SQL
 
 ```php
-$sql = $db->table('users')->where('active', 1)->toSql();
-$bindings = $db->table('users')->where('active', 1)->getBindings();
+[$sql, $bindings] = $db->table('users')
+    ->where('active', 1)
+    ->toSql();
 ```
 
 #### Raw expressions
@@ -199,12 +199,12 @@ $db->schema()->drop('users');
 
 ## 🗄 Supported Column Types
 
--   `id`, `integer`, `bigInteger`, `mediumInteger`, `smallInteger`, `tinyInteger`
--   `decimal`, `double`, `float`
--   `string`, `char`, `text`, `mediumText`, `longText`
+-   Integers: `id`, `integer`, `bigInteger`, `mediumInteger`, `smallInteger`, `tinyInteger`
+-   Floats: `decimal`, `double`, `float`
+-   Text: `string`, `char`, `text`, `mediumText`, `longText`
 -   `boolean`
 -   `json`
--   `date`, `datetime`, `timestamp`, `time`, `year`
+-   Dates: `date`, `datetime`, `timestamp`, `time`, `year`
 -   `uuid`
 -   Indexes: `index`, `unique`, `primary`
 -   Foreign keys
@@ -235,9 +235,9 @@ return new class extends Migration {
 };
 ```
 
-## 🧰 Standalone CLI
+## 🧰 CLI Tool
 
-This package ships with its own CLI tool:
+A standalone CLI ships with the package:
 
 ```
 vendor/bin/database
@@ -267,7 +267,7 @@ vendor/bin/database migrate:status
 vendor/bin/database make:migration CreatePostsTable
 ```
 
-The CLI automatically uses:
+Default migrations directory:
 
 ```
 ./database/migrations

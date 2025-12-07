@@ -29,31 +29,33 @@ class Migrator
      */
     public function migrate(): array
     {
+        $this->repository->ensureTableExists();
+
         $files = $this->getMigrationFiles();
         $ran = $this->repository->getRan();
-        $ranNames = array_column($ran, 'migration');
 
-        $pending = array_diff(array_keys($files), $ranNames);
+        $pending = array_diff(array_keys($files), $ran);
+
+        sort($pending);
 
         if (empty($pending)) {
             return [];
         }
 
-        sort($pending);
-
         $batch = $this->repository->getLastBatchNumber() + 1;
         $executed = [];
 
-        foreach ($pending as $migration) {
-            $file = $files[$migration];
+        foreach ($pending as $name) {
+            $path = $files[$name];
+            $instance = $this->resolveMigration($path);
 
-            $instance = $this->resolveMigration($file);
+            $this->connection->transaction(function () use ($instance, $name, $batch, &$executed) {
+                $instance->up();
 
-            $instance->up();
+                $this->repository->log($name, $batch);
 
-            $this->repository->log($migration, $batch);
-
-            $executed[] = $migration;
+                $executed[] = $name;
+            });
         }
 
         return $executed;

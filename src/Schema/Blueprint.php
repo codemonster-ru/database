@@ -158,7 +158,9 @@ class Blueprint
     protected function addColumn(string $type, string $name, array $options = []): ColumnDefinition
     {
         $column = new ColumnDefinition($type, $name, $options);
+
         $this->columns[] = $column;
+
         return $column;
     }
 
@@ -223,7 +225,9 @@ class Blueprint
     public function foreign(string $column): ForeignKeyDefinition
     {
         $fk = new ForeignKeyDefinition($column);
+
         $this->foreignKeys[] = $fk;
+
         return $fk;
     }
 

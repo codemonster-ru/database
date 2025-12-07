@@ -1,6 +1,6 @@
 {
     "name": "codemonster-ru/database",
-    "description": "Lightweight database layer with PDO-based connection, query runner, and extensible query builder.",
+    "description": "Lightweight, framework-agnostic database layer with PDO connections, fluent Query Builder, Schema Builder, and full migration system.",
     "type": "library",
     "license": "MIT",
     "readme": "README.md",
@@ -20,11 +20,16 @@
         "ext-pdo": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.6 || ^10.5 || ^11.0 || ^12.0"
+        "phpunit/phpunit": "^12.0"
     },
     "autoload": {
         "psr-4": {
             "Codemonster\\Database\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Codemonster\\Database\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -40,9 +45,14 @@
         "query",
         "query-builder",
         "sql",
+        "schema",
+        "migrations",
+        "migration-runner",
+        "database-manager",
         "db-layer",
-        "lightweight",
+        "orm-like",
         "php-database",
+        "framework-agnostic",
         "codemonster"
     ],
     "support": {

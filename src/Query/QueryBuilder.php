@@ -3,8 +3,9 @@
 namespace Codemonster\Database\Query;
 
 use Codemonster\Database\Contracts\ConnectionInterface;
+use Codemonster\Database\Contracts\QueryBuilderInterface;
 
-class QueryBuilder
+class QueryBuilder implements QueryBuilderInterface
 {
     protected ConnectionInterface $connection;
 
@@ -62,12 +63,14 @@ class QueryBuilder
     public function selectRaw(string $expression): static
     {
         $this->columns[] = new RawExpression($expression);
+
         return $this;
     }
 
     public function distinct(): static
     {
         $this->distinct = true;
+
         return $this;
     }
 
@@ -79,8 +82,11 @@ class QueryBuilder
     {
         if (is_callable($column)) {
             $group = new WhereGroup();
+
             $column($this->newScopedBuilder($group));
+
             $this->where->addGroup($group, strtoupper($boolean));
+
             return $this;
         }
 
@@ -274,6 +280,7 @@ class QueryBuilder
     public function crossJoin(string $table): static
     {
         $this->joins[] = new JoinClause('CROSS', $table);
+
         return $this;
     }
 
@@ -306,6 +313,7 @@ class QueryBuilder
                         $this->wrapColumn($cond['column']),
                         $cond['operator']
                     );
+
                     $bindings[] = $cond['value'];
                 }
             }
@@ -387,12 +395,14 @@ class QueryBuilder
     public function limit(int $value): self
     {
         $this->limit = max(0, $value);
+
         return $this;
     }
 
     public function offset(int $value): self
     {
         $this->offset = max(0, $value);
+
         return $this;
     }
 
@@ -403,14 +413,16 @@ class QueryBuilder
     public function get(): array
     {
         [$sql, $bindings] = $this->compileSelect();
+
         return $this->connection->select($sql, $bindings);
     }
 
     public function first(): ?array
     {
-        $this->limit ??= 1;
+        $clone = clone $this;
+        $clone->limit ??= 1;
 
-        [$sql, $bindings] = $this->compileSelect();
+        [$sql, $bindings] = $clone->compileSelect();
 
         return $this->connection->selectOne($sql, $bindings);
     }
@@ -432,6 +444,7 @@ class QueryBuilder
     public function insert(array $values): bool
     {
         [$sql, $bindings] = $this->compileInsert($values);
+
         return $this->connection->insert($sql, $bindings);
     }
 
@@ -467,6 +480,7 @@ class QueryBuilder
     public function update(array $values): int
     {
         [$sql, $bindings] = $this->compileUpdate($values);
+
         return $this->connection->update($sql, $bindings);
     }
 
@@ -499,6 +513,7 @@ class QueryBuilder
     public function delete(): int
     {
         [$sql, $bindings] = $this->compileDelete();
+
         return $this->connection->delete($sql, $bindings);
     }
 
@@ -535,12 +550,14 @@ class QueryBuilder
 
         // JOINs
         $joins = $this->compileJoins($bindings);
+
         if ($joins) {
             $sql .= $joins;
         }
 
         // WHERE
         $whereSql = $this->compileWhere($this->where, $bindings);
+
         if ($whereSql) {
             $sql .= ' WHERE ' . $whereSql;
         }
@@ -560,6 +577,7 @@ class QueryBuilder
 
                 if ($having['type'] === 'raw') {
                     $havingParts[] = $boolean . $having['sql'];
+
                     continue;
                 }
 
@@ -654,6 +672,7 @@ class QueryBuilder
                     }
 
                     $sqlParts[] = $boolean . '(' . $expr . ')';
+
                     continue;
                 }
 
@@ -664,6 +683,7 @@ class QueryBuilder
                         $cond->column,
                         $cond->operator
                     );
+
                     continue;
                 }
 
@@ -677,6 +697,7 @@ class QueryBuilder
                         $cond->column,
                         $cond->operator
                     );
+
                     continue;
                 }
 
@@ -698,15 +719,15 @@ class QueryBuilder
                     continue;
                 }
 
-                // Обычное условие
+                // Normal condition
                 $bindings[] = $cond->value;
 
-                $sqlParts[] =
-                    $boolean . sprintf('`%s` %s ?', $cond->column, $cond->operator);
+                $sqlParts[] = $boolean . sprintf('`%s` %s ?', $cond->column, $cond->operator);
             }
 
             if ($item['type'] === 'group') {
                 $nested = $this->compileWhere($item['group'], $bindings);
+
                 if ($nested !== null) {
                     $sqlParts[] = $boolean . '(' . $nested . ')';
                 }
@@ -724,15 +745,18 @@ class QueryBuilder
     {
         $alias = '_aggregate';
 
-        $this->columns = [new RawExpression(
-            sprintf('%s(%s) as %s', $function, $this->wrapColumn($column), $alias)
+        // Clone the builder so as not to spoil the original
+        $clone = clone $this;
+
+        $clone->columns = [new RawExpression(
+            sprintf('%s(%s) as %s', $function, $clone->wrapColumn($column), $alias)
         )];
 
-        $this->orders = [];
-        $this->limit = null;
-        $this->offset = null;
+        $clone->orders = [];
+        $clone->limit = null;
+        $clone->offset = null;
 
-        [$sql, $bindings] = $this->compileSelect();
+        [$sql, $bindings] = $clone->compileSelect();
 
         $row = $this->connection->selectOne($sql, $bindings);
 
@@ -832,10 +856,12 @@ class QueryBuilder
     {
         $page = max(1, $page);
 
-        $this->limit($perPage + 1);
-        $this->offset(($page - 1) * $perPage);
+        $clone = clone $this;
 
-        $rows = $this->get();
+        $clone->limit($perPage + 1);
+        $clone->offset(($page - 1) * $perPage);
+
+        $rows = $clone->get();
 
         $hasMore = count($rows) > $perPage;
 
@@ -867,6 +893,7 @@ class QueryBuilder
 
         if (str_contains($column, '.')) {
             [$table, $col] = explode('.', $column, 2);
+
             return $this->wrapTable($table) . '.' . $this->wrapColumn($col);
         }
 

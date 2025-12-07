@@ -2,6 +2,85 @@
 
 All significant changes to this project will be documented in this file.
 
+## [1.0.0] – 2025-12-08
+
+### Added
+
+-   **Stabilized Query Builder API**
+
+    -   Finalized interfaces (`QueryBuilderInterface`, `ConnectionInterface`)
+    -   Unified SQL compiler architecture
+    -   Added reliable aggregate handling without mutating the builder
+    -   Added consistent `toSql()` + bindings output across all query types
+
+-   **DatabaseManager**
+
+    -   Multiple connections support
+    -   Lazy connection initialization
+    -   Full config-based connection resolver
+    -   `connection(name)` API
+
+-   **Connection layer**
+
+    -   Strict error handling via `QueryException` / `DatabaseException`
+    -   Dedicated `transaction()` wrapper with automatic rollback on failure
+    -   Strong return types and full interface coverage
+
+-   **Schema Builder**
+
+    -   Table creation, modification and drop operations
+    -   Full set of column types (integer families, text, JSON, datetime, boolean, UUID etc.)
+    -   Index builder (primary, unique, index)
+    -   Foreign key constraints
+
+-   **Migration System**
+
+    -   Migration repository with automatic table creation
+    -   Migration runner with per-migration transactions
+    -   Rollback & status commands
+    -   Migration file resolver with multi-directory support
+
+-   **Standalone CLI**
+
+    -   `database migrate`
+    -   `database migrate:rollback`
+    -   `database migrate:status`
+    -   `database make:migration`
+    -   Autodiscovery of `database/migrations` directory
+
+-   **Test Suite (full coverage)**
+    -   FakeConnection for integration-like testing
+    -   QueryBuilder grammar tests (select, joins, where, aggregates, pagination)
+    -   Schema grammar tests
+    -   MigrationRepository & Migrator tests
+    -   Connection behavior tests (prepare, exceptions, transactions)
+
+### Changed
+
+-   Significantly refactored internal SQL grammar:
+    -   Unified compiler pipeline for all query types
+    -   Improved ORDER BY / GROUP BY / HAVING positioning rules
+    -   More consistent parameter binding logic
+-   Rewritten migration runner to use explicit transactions
+-   Normalized naming conventions across all components (Builder, Grammar, Repository)
+-   Simplified QueryBuilder internals using condition and join objects (`WhereCondition`, `WhereGroup`, `JoinClause`)
+-   Improved developer experience for `insertGetId()`, `exists()`, `pluck()`, and pagination methods
+
+### Fixed
+
+-   Nested where groups now compile with correct parentheses and precedence
+-   Raw expressions are no longer escaped incorrectly
+-   Pagination SQL no longer mutates the original builder state
+-   JOIN compiler now respects ordering and nested conditions
+-   Connection::table() now properly returns a query builder implementing the contract
+-   Numerous edge-case bugs found during test suite completion
+
+### Removed
+
+-   All deprecated pre-0.7.0 grammar logic
+-   Old connection helpers replaced with a typed, interface-driven API
+-   Legacy QueryBuilder internals rewritten or removed
+
 ## [0.7.0] – 2025-12-01
 
 ### Added

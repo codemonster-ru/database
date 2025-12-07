@@ -402,6 +402,7 @@ class MySqlGrammar extends Grammar
     protected function createIndexName(Blueprint $blueprint, array $index): string
     {
         $cols = implode('_', $index['columns']);
+
         return "{$blueprint->table}_{$cols}_{$index['type']}";
     }
 }
