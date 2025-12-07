@@ -18,7 +18,7 @@ class MigrationRepository
         $this->ensureTableExists();
     }
 
-    protected function ensureTableExists(): void
+    public function ensureTableExists(): void
     {
         $sql = <<<SQL
         CREATE TABLE IF NOT EXISTS `{$this->table}` (

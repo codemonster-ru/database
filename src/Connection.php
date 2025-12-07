@@ -3,18 +3,41 @@
 namespace Codemonster\Database;
 
 use Codemonster\Database\Contracts\ConnectionInterface;
+use Codemonster\Database\Contracts\QueryBuilderInterface;
 use Codemonster\Database\Exceptions\QueryException;
 use Codemonster\Database\Query\QueryBuilder;
 use PDO;
 use PDOException;
+use PDOStatement;
+use InvalidArgumentException;
 use Throwable;
 
 class Connection implements ConnectionInterface
 {
-    protected PDO $pdo;
+    /**
+     * @var \PDO|\stdClass|object
+     */
+    protected $pdo;
 
     public function __construct(array $config)
     {
+        $defaults = [
+            'host'    => '127.0.0.1',
+            'port'    => 3306,
+            'charset' => 'utf8mb4',
+            'options' => [],
+        ];
+
+        $config = array_replace($defaults, $config);
+
+        foreach (['database', 'username', 'password'] as $key) {
+            if (!array_key_exists($key, $config)) {
+                throw new InvalidArgumentException(
+                    sprintf('Database connection config is missing required key: "%s".', $key)
+                );
+            }
+        }
+
         $dsn = sprintf(
             'mysql:host=%s;port=%s;dbname=%s;charset=%s',
             $config['host'],
@@ -23,13 +46,25 @@ class Connection implements ConnectionInterface
             $config['charset']
         );
 
+        $options = $config['options'] ?? [];
+        $options[PDO::ATTR_ERRMODE] ??= PDO::ERRMODE_EXCEPTION;
+        $options[PDO::ATTR_DEFAULT_FETCH_MODE] ??= PDO::FETCH_ASSOC;
+
         try {
-            $this->pdo = new PDO($dsn, $config['username'], $config['password'], [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            ]);
+            $this->pdo = new PDO(
+                $dsn,
+                $config['username'],
+                $config['password'],
+                $options
+            );
         } catch (PDOException $e) {
-            throw new QueryException($e->getMessage(), $e->getCode(), $e);
+            throw new QueryException(
+                $e->getMessage(),
+                $dsn,
+                [],
+                (int) $e->getCode(),
+                $e
+            );
         }
     }
 
@@ -42,7 +77,7 @@ class Connection implements ConnectionInterface
     {
         $result = $this->run($query, $params)->fetch();
 
-        return $result ?: null;
+        return $result !== false ? $result : null;
     }
 
     public function insert(string $query, array $params = []): bool
@@ -65,15 +100,20 @@ class Connection implements ConnectionInterface
         return $this->run($query, $params) !== false;
     }
 
-    protected function run(string $query, array $params = [])
+    protected function run(string $query, array $params = []): PDOStatement
     {
         try {
             $stmt = $this->pdo->prepare($query);
+
+            if (!$stmt) {
+                throw new QueryException("Failed to prepare SQL statement.", $query, $params);
+            }
+
             $stmt->execute($params);
 
             return $stmt;
         } catch (PDOException $e) {
-            throw new QueryException($e->getMessage(), $e->getCode(), $e);
+            throw new QueryException($e->getMessage(), $query, $params, (int)$e->getCode(), $e);
         }
     }
 
@@ -82,7 +122,7 @@ class Connection implements ConnectionInterface
         return $this->pdo;
     }
 
-    public function table(string $table): QueryBuilder
+    public function table(string $table): QueryBuilderInterface
     {
         return new QueryBuilder($this, $table);
     }

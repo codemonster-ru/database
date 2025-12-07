@@ -2,8 +2,12 @@
 
 namespace Codemonster\Database\Contracts;
 
-use Codemonster\Database\Query\QueryBuilder;
+use PDO;
+use Codemonster\Database\Contracts\QueryBuilderInterface;
 
+/**
+ * Database connection abstraction.
+ */
 interface ConnectionInterface
 {
     public function select(string $query, array $params = []): array;
@@ -18,9 +22,7 @@ interface ConnectionInterface
 
     public function statement(string $query, array $params = []): bool;
 
-    public function getPdo(): \PDO;
-
-    public function table(string $table): QueryBuilder;
+    public function table(string $table): QueryBuilderInterface;
 
     public function beginTransaction(): bool;
 
@@ -28,5 +30,12 @@ interface ConnectionInterface
 
     public function rollBack(): bool;
 
+    /**
+     * @template T
+     * @param callable(self):T $callback
+     * @return T
+     */
     public function transaction(callable $callback): mixed;
+
+    public function getPdo(): PDO;
 }

@@ -27,7 +27,6 @@ class RollbackCommand implements CommandInterface
     public function handle(array $arguments): int
     {
         $step = $this->parseStepOption($arguments);
-
         $rolled = $this->migrator->rollback($step);
 
         if (empty($rolled)) {
@@ -48,6 +47,7 @@ class RollbackCommand implements CommandInterface
         foreach ($arguments as $arg) {
             if (str_starts_with($arg, '--step=')) {
                 $value = substr($arg, 7);
+
                 return max(1, (int) $value);
             }
         }
