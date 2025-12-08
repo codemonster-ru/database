@@ -4,6 +4,7 @@ namespace Codemonster\Database\Tests;
 
 use Codemonster\Database\Contracts\ConnectionInterface;
 use Codemonster\Database\Query\QueryBuilder;
+use Codemonster\Database\Schema\Schema;
 use PDO;
 
 class FakeConnection implements ConnectionInterface
@@ -116,6 +117,11 @@ class FakeConnection implements ConnectionInterface
     public function table(string $table): QueryBuilder
     {
         return new QueryBuilder($this, $table);
+    }
+
+    public function schema(): Schema
+    {
+        return new Schema($this, new \Codemonster\Database\Schema\Grammar());
     }
 
     public function getPdo(): PDO

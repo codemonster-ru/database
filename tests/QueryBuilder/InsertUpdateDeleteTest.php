@@ -19,7 +19,11 @@ class InsertUpdateDeleteTest extends TestCase
 
         [$sql, $bindings] = $connection->executed[0];
 
-        $this->assertEquals('INSERT INTO `users` (`name`) VALUES (?)', $sql);
+        $this->assertEquals(
+            'INSERT INTO `users` (`name`) VALUES (?)',
+            $sql
+        );
+
         $this->assertEquals(['John'], $bindings);
     }
 }
