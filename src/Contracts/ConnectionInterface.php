@@ -3,6 +3,7 @@
 namespace Codemonster\Database\Contracts;
 
 use PDO;
+use Codemonster\Database\Schema\Schema;
 use Codemonster\Database\Contracts\QueryBuilderInterface;
 
 /**
@@ -38,4 +39,6 @@ interface ConnectionInterface
     public function transaction(callable $callback): mixed;
 
     public function getPdo(): PDO;
+
+    public function schema(): Schema;
 }

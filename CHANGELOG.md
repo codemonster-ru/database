@@ -2,6 +2,60 @@
 
 All significant changes to this project will be documented in this file.
 
+## [1.1.0] – 2025-12-09
+
+### Added
+
+-   **Multi-driver connection support**
+
+    -   Added `driver` option (`mysql`, `sqlite`)
+    -   Automatic DSN selection based on driver
+    -   SQLite in-memory support (`sqlite::memory:`)
+
+-   **Schema Grammars System**
+
+    -   New extensible `Grammar` architecture
+    -   Implemented `MySqlGrammar`
+    -   Implemented `SQLiteGrammar`
+    -   Added implementations for:
+        -   `compileCreate`
+        -   `compileDrop`
+        -   `compileDropIfExists`
+        -   `compileAlter`
+        -   `compileRenameTable`
+        -   `compileColumn`
+        -   `compileForeign`
+        -   `compileInlineForeign`
+
+-   **Improved Blueprint & ColumnDefinition**
+    -   Full type map with consistent options (`length`, `precision`, `scale`)
+    -   Unified modifiers: `nullable`, `default`, `unsigned`, `autoIncrement`, `comment`, `primary`, `unique`, `change`
+
+### Changed
+
+-   `Connection`:
+    -   Requires `driver` explicitly
+    -   DSN now depends on the selected driver
+    -   Returns a `Schema` instance bound to the proper grammar
+-   Schema Builder:
+    -   SQL compilation fully delegated to driver-specific grammars
+    -   CREATE / ALTER / DROP return multiple SQL statements
+-   Test suite updated:
+    -   FakeConnection adjusted to new contract
+    -   QueryBuilder, Schema, Migration tests aligned with new behavior
+
+### Fixed
+
+-   Fixed method signature mismatches in Intelephense
+-   Corrected SQLite behavior and missing type mappings
+-   Fixed SchemaHelper in support package
+-   Repaired ColumnDefinition attributes (`length`, `precision`, `scale`, `unsigned`)
+
+### Removed
+
+-   Legacy single-driver DSN builder
+-   Deprecated schema compiler code no longer part of the package
+
 ## [1.0.0] – 2025-12-08
 
 ### Added

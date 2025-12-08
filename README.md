@@ -22,21 +22,51 @@ composer require codemonster-ru/database
 use Codemonster\Database\DatabaseManager;
 
 $manager = new DatabaseManager([
-    'default' => 'mysql',
+    'default' => 'mysql', // name of the default connection
     'connections' => [
         'mysql' => [
-            'host' => '127.0.0.1',
-            'port' => 3306,
+            'driver'   => 'mysql',
+            'host'     => '127.0.0.1',
+            'port'     => 3306,
             'database' => 'test',
             'username' => 'root',
             'password' => '',
-            'charset' => 'utf8mb4',
+            'charset'  => 'utf8mb4',
         ],
     ],
 ]);
 
-$db = $manager->connection();
+$db = $manager->connection(); // default connection
 ```
+
+You can define multiple connections and select them by name:
+
+```php
+$manager = new DatabaseManager([
+    'default' => 'mysql',
+    'connections' => [
+        'mysql' => [
+            'driver'   => 'mysql',
+            'host'     => '127.0.0.1',
+            'port'     => 3306,
+            'database' => 'app',
+            'username' => 'root',
+            'password' => '',
+        ],
+        'sqlite' => [
+            'driver'   => 'sqlite',
+            'database' => __DIR__ . '/database.sqlite',
+        ],
+    ],
+]);
+
+$mysql  = $manager->connection();          // default (mysql)
+$sqlite = $manager->connection('sqlite');  // explicit connection
+```
+
+-   For **MySQL/MariaDB** use `driver => 'mysql'`.
+-   For **SQLite** use `driver => 'sqlite'` and only `database` is required (file path or `:memory:`).
+-   Other PDO drivers can be wired via `driver` + DSN-compatible options; the query layer is driver-agnostic, while the schema builder is primarily tuned for MySQL-like syntax and SQLite.
 
 ### 2. Query Builder
 
@@ -55,7 +85,7 @@ $users = $db->table('users')
 
 ```php
 $db->table('users')->insert([
-    'name' => 'Vasya',
+    'name'  => 'Vasya',
     'email' => 'test@example.com',
 ]);
 
@@ -70,7 +100,7 @@ $id = $db->table('ideas')->insertGetId([
 $db->table('users')
     ->where('id', 5)
     ->update([
-        'active' => 0,
+        'active'     => 0,
         'updated_at' => date('Y-m-d H:i:s'),
     ]);
 ```
@@ -89,6 +119,9 @@ $db->table('sessions')
 [$sql, $bindings] = $db->table('users')
     ->where('active', 1)
     ->toSql();
+
+// $sql      = 'SELECT * FROM `users` WHERE `active` = ?'
+// $bindings = [1]
 ```
 
 #### Raw expressions
@@ -106,10 +139,10 @@ $db->table('users')
 ```php
 $db->table('orders')
     ->join('users', 'users.id', '=', 'orders.user_id')
-    ->leftJoin('payments', fn($join) =>
+    ->leftJoin('payments', function ($join) {
         $join->on('payments.order_id', '=', 'orders.id')
-             ->where('payments.status', 'paid')
-    )
+             ->where('payments.status', 'paid');
+    })
     ->get();
 ```
 
@@ -121,7 +154,6 @@ $db->table('orders')
     ->groupBy('status')
     ->having('total', '>', 10)
     ->get();
-
 ```
 
 #### Aggregates
@@ -137,36 +169,75 @@ $max   = $db->table('visits')->max('duration');
 #### Exists
 
 ```php
-$db->table('users')->where('email', 'test@example.com')->exists();
+$exists = $db->table('users')
+    ->where('email', 'test@example.com')
+    ->exists();
 ```
 
 #### Value / Pluck
 
 ```php
-$email = $db->table('users')->where('id', 1)->value('email');
+$email = $db->table('users')
+    ->where('id', 1)
+    ->value('email');
 
 $names = $db->table('users')->pluck('name');
-$pairs = $db->table('users')->pluck('email', 'id');
+$pairs = $db->table('users')->pluck('email', 'id'); // [id => email]
 ```
 
 #### Pagination
 
 ```php
+$currentPage = 1;
+
 $page = $db->table('posts')->simplePaginate(20, $currentPage);
+
+// $page = [
+//     'data'        => [...],
+//     'per_page'    => 20,
+//     'current_page'=> 1,
+//     'next_page'   => 2,
+//     'prev_page'   => null,
+// ];
 ```
 
 ### 3. Transactions
 
 ```php
 $db->transaction(function ($db) {
-    $db->table('users')->insert([...]);
-    $db->table('logs')->insert([...]);
+    $db->table('users')->insert([
+        'name'  => 'New user',
+        'email' => 'user@example.com',
+    ]);
+
+    $db->table('logs')->insert([
+        'message' => 'User created',
+    ]);
 });
 ```
 
+### 4. Global Helpers (with `codemonster-ru/support`)
+
+If you also install [`codemonster-ru/support`](https://packagist.org/packages/codemonster-ru/support)
+and register bindings in your container, you can use global helpers:
+
+```php
+db();                 // returns default ConnectionInterface
+db('sqlite');         // specific connection
+schema();             // schema builder for default connection
+transaction(fn() =>   // convenience wrapper
+    db()->table('logs')->insert(['message' => 'ok'])
+);
+```
+
+Helpers are thin wrappers around `DatabaseManager` and the connection’s `schema()` / `transaction()` methods.
+
 ## 📐 Schema Builder
 
-The package includes a lightweight schema builder:
+The package includes a lightweight schema builder.
+
+> **Note:** The schema grammar is focused on MySQL/MariaDB and SQLite.  
+> For other PDO drivers, the query builder will work, but schema operations may not be fully supported.
 
 ### Creating a table
 
@@ -195,6 +266,9 @@ $db->schema()->table('users', function (Blueprint $table) {
 
 ```php
 $db->schema()->drop('users');
+
+// or:
+$db->schema()->dropIfExists('users');
 ```
 
 ## 🗄 Supported Column Types
@@ -202,16 +276,16 @@ $db->schema()->drop('users');
 -   Integers: `id`, `integer`, `bigInteger`, `mediumInteger`, `smallInteger`, `tinyInteger`
 -   Floats: `decimal`, `double`, `float`
 -   Text: `string`, `char`, `text`, `mediumText`, `longText`
--   `boolean`
--   `json`
--   Dates: `date`, `datetime`, `timestamp`, `time`, `year`
--   `uuid`
+-   Boolean: `boolean`
+-   JSON: `json`
+-   Dates & time: `date`, `datetime`, `timestamp`, `time`, `year`
+-   UUID: `uuid`
 -   Indexes: `index`, `unique`, `primary`
--   Foreign keys
+-   Foreign keys with `foreign()` / `references()` / `on()` and `onDelete()` / `onUpdate()` helpers
 
 ## 🚦 Migrations
 
-The package includes a full migration system with:
+The package includes a migration system (designed to be used via the CLI).
 
 -   `migrate`
 -   `migrate:rollback`
@@ -221,15 +295,20 @@ The package includes a full migration system with:
 ### Example migration
 
 ```php
+use Codemonster\Database\Migrations\Migration;
+use Codemonster\Database\Schema\Blueprint;
+
 return new class extends Migration {
-    public function up() {
+    public function up(): void
+    {
         schema()->create('posts', function (Blueprint $table) {
             $table->id();
             $table->string('title');
         });
     }
 
-    public function down() {
+    public function down(): void
+    {
         schema()->drop('posts');
     }
 };
@@ -239,41 +318,41 @@ return new class extends Migration {
 
 A standalone CLI ships with the package:
 
-```
+```bash
 vendor/bin/database
 ```
 
 ### Running migrations
 
-```
+```bash
 vendor/bin/database migrate
 ```
 
 ### Rollback
 
-```
+```bash
 vendor/bin/database migrate:rollback
 ```
 
 ### Status
 
-```
+```bash
 vendor/bin/database migrate:status
 ```
 
 ### Create a migration
 
-```
+```bash
 vendor/bin/database make:migration CreatePostsTable
 ```
 
 Default migrations directory:
 
-```
+```text
 ./database/migrations
 ```
 
-You can override paths via:
+You can override paths via the migration kernel/path resolver:
 
 ```php
 $kernel->getPathResolver()->addPath('/path/to/migrations');
@@ -285,4 +364,4 @@ $kernel->getPathResolver()->addPath('/path/to/migrations');
 
 ## 📜 License
 
-[MIT](https://github.com/codemonster-ru/support/database/main/LICENSE)
+[MIT](https://github.com/codemonster-ru/database/blob/main/LICENSE)

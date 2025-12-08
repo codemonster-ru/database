@@ -6,6 +6,8 @@ use Codemonster\Database\Contracts\ConnectionInterface;
 use Codemonster\Database\Contracts\QueryBuilderInterface;
 use Codemonster\Database\Exceptions\QueryException;
 use Codemonster\Database\Query\QueryBuilder;
+use Codemonster\Database\Schema\MySqlGrammar;
+use Codemonster\Database\Schema\Schema;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -20,6 +22,17 @@ class Connection implements ConnectionInterface
     protected $pdo;
 
     public function __construct(array $config)
+    {
+        $driver = $config['driver'] ?? 'mysql';
+
+        return match ($driver) {
+            'mysql'  => $this->connectMySql($config),
+            'sqlite' => $this->connectSqlite($config),
+            default  => throw new InvalidArgumentException("Unsupported driver [$driver].")
+        };
+    }
+
+    protected function connectMySql(array $config): void
     {
         $defaults = [
             'host'    => '127.0.0.1',
@@ -58,13 +71,24 @@ class Connection implements ConnectionInterface
                 $options
             );
         } catch (PDOException $e) {
-            throw new QueryException(
-                $e->getMessage(),
-                $dsn,
-                [],
-                (int) $e->getCode(),
-                $e
-            );
+            throw new QueryException($e->getMessage(), $dsn, [], (int)$e->getCode(), $e);
+        }
+    }
+
+    protected function connectSqlite(array $config): void
+    {
+        if (!isset($config['database'])) {
+            throw new InvalidArgumentException('SQLite config must contain "database".');
+        }
+
+        $dsn = 'sqlite:' . $config['database'];
+
+        try {
+            $this->pdo = new PDO($dsn);
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            throw new QueryException($e->getMessage(), $dsn, [], (int)$e->getCode(), $e);
         }
     }
 
@@ -157,5 +181,10 @@ class Connection implements ConnectionInterface
 
             throw $e;
         }
+    }
+
+    public function schema(): Schema
+    {
+        return new Schema($this, new MySqlGrammar());
     }
 }
