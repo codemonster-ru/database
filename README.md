@@ -314,6 +314,115 @@ return new class extends Migration {
 };
 ```
 
+## 🧬 ORM (ActiveRecord / Eloquent‑style)
+
+**Since 1.3.0**, the package includes a complete ORM layer:
+
+-   `Model`
+-   `ModelQuery`
+-   `ModelCollection`
+-   Lazy & eager loading
+-   `$fillable`, `$guarded`, `$hidden`
+-   Attribute casting (`int`, `json`, `datetime`, etc.)
+-   `created_at` / `updated_at`
+-   `SoftDeletes`
+
+### Example model
+
+```php
+use Codemonster\Database\ORM\Model;
+
+class User extends Model
+{
+    protected string $table = 'users';
+
+    protected array $fillable = ['name', 'email', 'password'];
+
+    protected array $hidden = ['password'];
+
+    protected array $casts = [
+        'created_at' => 'datetime',
+    ];
+}
+```
+
+### Fetching models
+
+```php
+$user = User::find(1);
+
+$active = User::query()
+    ->where('active', 1)
+    ->orderBy('id')
+    ->get();
+```
+
+### Creating / updating / deleting
+
+```php
+User::create([
+    'name' => 'John',
+    'email' => 'john@example.com',
+]);
+
+$user->email = 'new@example.com';
+$user->save();
+
+$user->delete();
+```
+
+## 🔗 Relationships
+
+Available relations:
+
+-   `HasOne`
+-   `HasMany`
+-   `BelongsTo`
+-   `BelongsToMany`
+
+### Example
+
+```php
+class User extends Model {
+    public function posts() {
+        return $this->hasMany(Post::class);
+    }
+}
+
+class Post extends Model {
+    public function author() {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+}
+```
+
+### Lazy loading
+
+```php
+$user->posts;
+```
+
+### Eager loading
+
+```php
+$user->load('posts');
+```
+
+## 🧹 Soft Deletes
+
+```php
+use Codemonster\Database\Traits\SoftDeletes;
+
+class User extends Model {
+    use SoftDeletes;
+}
+```
+
+-   `$user->delete()` → sets `deleted_at`
+-   `$user->restore()`
+-   `User::onlyTrashed()`
+-   `User::withTrashed()`
+
 ## 🧰 CLI Tool
 
 A standalone CLI ships with the package:
@@ -356,6 +465,12 @@ You can override paths via the migration kernel/path resolver:
 
 ```php
 $kernel->getPathResolver()->addPath('/path/to/migrations');
+```
+
+# 🧪 Tests
+
+```bash
+composer test
 ```
 
 ## 👨‍💻 Author
