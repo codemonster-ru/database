@@ -2,6 +2,94 @@
 
 All significant changes to this project will be documented in this file.
 
+## [1.3.0] – 2025-12-10
+
+### Added
+
+-   **Full ORM layer (ActiveRecord/Eloquent-like):**
+
+    -   `Model`, `ModelQuery`, `ModelCollection`
+    -   Mass assignment: `$fillable`, `$guarded`, `$hidden`
+    -   Attribute casting: `int`, `float`, `bool`, `string`, `array`, `json`, `datetime`, `date`
+    -   Automatic timestamps (`created_at`, `updated_at`)
+    -   Core CRUD API:
+        -   `create()`
+        -   `save()`
+        -   `delete()`
+        -   `find()`
+        -   `all()`
+    -   Hydration system:
+        -   `hydrate()`
+        -   automatic hydration for relations
+        -   lazy-loading with magic `__get()`
+    -   Eager loading support via `$model->load('relation')`
+
+-   **Relationships system:**
+
+    -   `HasOne`
+    -   `HasMany`
+    -   `BelongsTo`
+    -   `BelongsToMany`
+    -   Automatic resolution of:
+        -   foreign keys
+        -   owner keys
+        -   pivot tables
+    -   Pivot table join support
+
+-   **SoftDeletes trait:**
+
+    -   `deleted_at` column support
+    -   `trashed()`
+    -   `restore()`
+    -   Query helpers:
+        -   `withTrashed()`
+        -   `withoutTrashed()`
+        -   `onlyTrashed()`
+
+-   **Model helpers**
+    -   `getQualifiedKeyName()`
+    -   `getForeignKey()`
+    -   `joiningTable()`
+
+### Changed
+
+-   Rewritten ORM interaction layer to use:
+    -   `QueryBuilder` with correct namespacing
+    -   `insertGetId`, `insert`, `update`, `delete` with full QueryBuilder compatibility
+-   Standardized relationship hydration logic
+-   Updated delete logic to integrate SoftDeletes when trait is used
+
+### Fixed
+
+-   Incorrect namespace import of QueryBuilder inside `Model.php`
+-   Missing `getQualifiedKeyName()` method causing relation/primary key resolution issues
+-   Incorrect usage of `$rows->toArray()` in relations (now uses hydrate)
+-   Timestamps no longer rely on non-existent helper `now()`
+-   SoftDeletes no longer causes Intelephense errors via PHPDoc method declaration
+
+## [1.2.0] – 2025-12-10
+
+### Added
+
+-   **ORM layer (ActiveRecord-style Model)**:
+
+    -   `Codemonster\Database\Model`
+    -   `ModelQuery` with model hydration
+    -   `ModelCollection` with helper methods
+
+-   **Relationships system**:
+
+    -   Base `Relation` class
+    -   `HasOne`, `HasMany`, `BelongsTo`, `BelongsToMany`
+
+-   **Model features**:
+    -   `$fillable`, `$guarded`, `$hidden`
+    -   `$casts` with primitive and datetime casting
+    -   `timestamps` support (`created_at`, `updated_at`)
+    -   Soft deletes via `SoftDeletes` trait (`deleted_at`)
+    -   Lazy loading of relations (`$user->posts`)
+    -   Eager loading via `$user->load('posts')` и `$collection->load()`
+
 ## [1.1.0] – 2025-12-09
 
 ### Added
