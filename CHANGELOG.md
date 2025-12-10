@@ -2,6 +2,18 @@
 
 All significant changes to this project will be documented in this file.
 
+## [1.4.0] - 2025-12-10
+
+### Added
+
+-   **ORM test coverage:** Added PHPUnit tests for Model, ModelQuery, ModelCollection, SoftDeletes, and all relation types; seeded fake profiles/roles for relation scenarios.
+-   **In-memory fakes:** FakeConnection now exposes table storage; FakeQueryBuilder emulates where/null filters, pivot joins, pagination counters, and CRUD without PDO.
+
+### Fixed
+
+-   Eliminated PHPUnit notice in Migrator tests by stubbing `MigrationPathResolver`.
+-   Fake query builder signatures now align with `QueryBuilderInterface` (return types, count/exists) to avoid compatibility errors during tests.
+
 ## [1.3.0] – 2025-12-10
 
 ### Added

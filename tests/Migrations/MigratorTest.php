@@ -5,7 +5,7 @@ namespace Codemonster\Database\Tests\Migrations;
 use Codemonster\Database\Migrations\MigrationPathResolver;
 use Codemonster\Database\Migrations\MigrationRepository;
 use Codemonster\Database\Migrations\Migrator;
-use Codemonster\Database\Tests\FakeConnection;
+use Codemonster\Database\Tests\Fakes\FakeConnection;
 use Codemonster\Database\Tests\TestCase;
 
 class MigratorTest extends TestCase
@@ -33,8 +33,8 @@ class MigratorTest extends TestCase
         $conn = new FakeConnection();
         $repo = new MigrationRepository($conn);
 
-        /** @var MigrationPathResolver|\PHPUnit\Framework\MockObject\MockObject $paths */
-        $paths = $this->createMock(MigrationPathResolver::class);
+        /** @var MigrationPathResolver $paths */
+        $paths = $this->createStub(MigrationPathResolver::class);
         $paths->method('getPaths')->willReturn([$dir]);
 
         $migrator = new Migrator($repo, $conn, $paths);
