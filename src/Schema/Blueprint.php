@@ -41,7 +41,19 @@ class Blueprint
 
     public function id(string $name = 'id'): ColumnDefinition
     {
-        return $this->addColumn('id', $name);
+        $column = $this->addColumn('id', $name);
+
+        // Auto-increment columns must be indexed; default to primary key if none defined yet.
+        $hasPrimary = array_filter(
+            $this->indexes,
+            fn(array $index) => ($index['type'] ?? null) === 'primary'
+        );
+
+        if (empty($hasPrimary)) {
+            $this->primary($name);
+        }
+
+        return $column;
     }
 
     public function string(string $name, int $length = 255): ColumnDefinition

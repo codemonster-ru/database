@@ -173,11 +173,17 @@ class Connection implements ConnectionInterface
         try {
             $result = $callback($this);
 
-            $this->commit();
+            // Some drivers (e.g., MySQL DDL) may auto-commit and end the transaction.
+            // Commit only when a transaction is still open to avoid "no active transaction" errors.
+            if ($this->pdo->inTransaction()) {
+                $this->commit();
+            }
 
             return $result;
         } catch (Throwable $e) {
-            $this->rollBack();
+            if ($this->pdo->inTransaction()) {
+                $this->rollBack();
+            }
 
             throw $e;
         }
