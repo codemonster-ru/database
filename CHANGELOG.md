@@ -2,6 +2,17 @@
 
 All significant changes to this project will be documented in this file.
 
+## [1.4.1] - 2025-12-10
+
+### Added
+
+-   **CLI tests:** Added coverage for skipping already-ran migrations and for migration path resolver uniqueness/default path handling.
+
+### Fixed
+
+-   **Migrator:** Pending detection now compares against ran migration names, preventing repeat execution of logged migrations.
+-   **CLI path resolver:** Allows registering default migration path even if the directory does not exist yet and deduplicates entries.
+
 ## [1.4.0] - 2025-12-10
 
 ### Added
