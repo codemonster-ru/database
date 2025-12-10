@@ -35,6 +35,12 @@ class MakeMigrationCommand implements CommandInterface
             return 1;
         }
 
+        if (!$this->isValidName($name)) {
+            fwrite(STDERR, "Migration name must be CamelCase, Latin letters only. Example: CreateUsersTable\n");
+
+            return 1;
+        }
+
         $path = $this->detectPath();
 
         if (!$path) {
@@ -76,11 +82,17 @@ class MakeMigrationCommand implements CommandInterface
         return null;
     }
 
+    protected function isValidName(string $name): bool
+    {
+        return (bool) preg_match('/^[A-Z][a-z]*(?:[A-Z][a-z]*)*$/', $name);
+    }
+
     protected function buildFileName(string $name): string
     {
         $now = new \DateTimeImmutable('now');
         $timestamp = $now->format('Y_m_d_His');
-        $slug = preg_replace('/[^A-Za-z0-9]+/', '_', $name);
+        $slug = preg_replace('/(?<!^)([A-Z])/', '_$1', $name);
+        $slug = preg_replace('/[^A-Za-z0-9]+/', '_', $slug);
         $slug = trim($slug, '_');
         $slug = strtolower($slug);
 

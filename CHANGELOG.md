@@ -2,6 +2,12 @@
 
 All significant changes to this project will be documented in this file.
 
+## [1.4.2] - 2025-12-10
+
+### Changed
+
+-   **CLI make:migration:** Migration names must now be CamelCase Latin words (e.g., `CreateUsersTable`); invalid names are rejected with an error.
+
 ## [1.4.1] - 2025-12-10
 
 ### Added
