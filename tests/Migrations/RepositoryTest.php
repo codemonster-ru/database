@@ -3,7 +3,7 @@
 namespace Codemonster\Database\Tests\Migrations;
 
 use Codemonster\Database\Migrations\MigrationRepository;
-use Codemonster\Database\Tests\FakeConnection;
+use Codemonster\Database\Tests\Fakes\FakeConnection;
 use Codemonster\Database\Tests\TestCase;
 
 class RepositoryTest extends TestCase

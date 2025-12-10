@@ -1,16 +1,18 @@
 <?php
 
-namespace Codemonster\Database\Tests;
+namespace Codemonster\Database\Tests\Fakes;
 
 use Codemonster\Database\Contracts\ConnectionInterface;
-use Codemonster\Database\Query\QueryBuilder;
+use Codemonster\Database\Contracts\QueryBuilderInterface;
 use Codemonster\Database\Schema\Schema;
 use PDO;
+use Codemonster\Database\Tests\Fakes\FakeQueryBuilder;
 
 class FakeConnection implements ConnectionInterface
 {
     public array $executed = [];
     public array $migrations = [];
+    public array $tables = [];
 
     public bool $transactionStarted    = false;
     public bool $transactionCommitted  = false;
@@ -114,9 +116,9 @@ class FakeConnection implements ConnectionInterface
         }
     }
 
-    public function table(string $table): QueryBuilder
+    public function table(string $table): QueryBuilderInterface
     {
-        return new QueryBuilder($this, $table);
+        return new FakeQueryBuilder($this, $table);
     }
 
     public function schema(): Schema
