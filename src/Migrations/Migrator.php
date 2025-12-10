@@ -32,7 +32,8 @@ class Migrator
         $this->repository->ensureTableExists();
 
         $files = $this->getMigrationFiles();
-        $ran = $this->repository->getRan();
+        // Compare by migration names only to avoid treating already-ran migrations as pending
+        $ran = array_column($this->repository->getRan(), 'migration');
 
         $pending = array_diff(array_keys($files), $ran);
 

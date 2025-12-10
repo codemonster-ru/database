@@ -55,4 +55,49 @@ class MigratorTest extends TestCase
         unlink($file);
         rmdir($dir);
     }
+
+    public function test_migrator_skips_already_ran_migrations()
+    {
+        $dir = sys_get_temp_dir() . '/cm_db_migrations_' . uniqid('', true);
+
+        mkdir($dir);
+
+        $first = '2025_01_01_000000_first_migration';
+        $second = '2025_01_02_000000_second_migration';
+
+        foreach ([$first, $second] as $name) {
+            file_put_contents($dir . DIRECTORY_SEPARATOR . $name . '.php', <<<PHP
+            <?php
+
+            use Codemonster\\Database\\Migrations\\Migration;
+
+            return new class extends Migration {
+                public function up(): void {}
+                public function down(): void {}
+            };
+            PHP);
+        }
+
+        $conn = new FakeConnection();
+        $conn->migrations = [$first];
+
+        $repo = new MigrationRepository($conn);
+
+        /** @var MigrationPathResolver $paths */
+        $paths = $this->createStub(MigrationPathResolver::class);
+        $paths->method('getPaths')->willReturn([$dir]);
+
+        $migrator = new Migrator($repo, $conn, $paths);
+
+        $ran = $migrator->migrate();
+
+        $this->assertSame([$second], $ran);
+        $this->assertSame([$first, $second], $conn->migrations);
+
+        foreach ([$first, $second] as $name) {
+            unlink($dir . DIRECTORY_SEPARATOR . $name . '.php');
+        }
+
+        rmdir($dir);
+    }
 }

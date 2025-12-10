@@ -14,9 +14,11 @@ class MigrationPathResolver
      */
     public function addPath(string $path): void
     {
-        if (is_dir($path)) {
-            $this->paths[] = rtrim($path, DIRECTORY_SEPARATOR);
-        }
+        // Allow registering paths even before the directory exists; it can be created later by CLI
+        $this->paths[] = rtrim($path, DIRECTORY_SEPARATOR);
+
+        // Keep list unique to avoid duplicate lookups
+        $this->paths = array_values(array_unique($this->paths));
     }
 
     /**
