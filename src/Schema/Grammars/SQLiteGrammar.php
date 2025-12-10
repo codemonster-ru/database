@@ -131,6 +131,11 @@ class SQLiteGrammar extends Grammar
             $sql .= ' DEFAULT ' . $default;
         }
 
+        // UNIQUE
+        if (!empty($col->modifiers['unique'])) {
+            $sql .= ' UNIQUE';
+        }
+
         // PRIMARY KEY
         if (!empty($col->modifiers['primary'])) {
             $sql .= ' PRIMARY KEY';

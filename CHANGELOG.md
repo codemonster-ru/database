@@ -2,6 +2,14 @@
 
 All significant changes to this project will be documented in this file.
 
+## [1.4.3] - 2025-12-10
+
+### Fixed
+
+-   Transaction wrapper now checks `inTransaction()` before commit/rollback to avoid "no active transaction" errors when drivers auto-commit DDL.
+-   `$table->id()` auto-assigns a primary key only when none exists, keeping AUTO_INCREMENT valid on MySQL.
+-   Column modifiers `->unique()` / `->primary()` are now emitted inline for MySQL/SQLite grammars, so `$table->string('email')->unique()` creates the constraint.
+
 ## [1.4.2] - 2025-12-10
 
 ### Changed

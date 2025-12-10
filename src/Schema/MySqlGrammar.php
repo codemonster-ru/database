@@ -223,6 +223,17 @@ class MySqlGrammar extends Grammar
             $sql .= " COMMENT '$comment'";
         }
 
+        //
+        // UNIQUE / PRIMARY KEY (inline for convenience)
+        //
+        if (!empty($column->modifiers['unique'])) {
+            $sql .= ' UNIQUE';
+        }
+
+        if (!empty($column->modifiers['primary'])) {
+            $sql .= ' PRIMARY KEY';
+        }
+
         return $sql;
     }
 
