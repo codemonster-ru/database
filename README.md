@@ -467,7 +467,7 @@ You can override paths via the migration kernel/path resolver:
 $kernel->getPathResolver()->addPath('/path/to/migrations');
 ```
 
-# 🧪 Tests
+## 🧪 Tests
 
 ```bash
 composer test
