@@ -8,13 +8,13 @@
 A lightweight, framework-agnostic database layer for PHP.  
 Part of the Codemonster ecosystem — but works fully standalone.
 
-## 📦 Installation
+## Installation
 
 ```bash
 composer require codemonster-ru/database
 ```
 
-## 🚀 Usage
+## Usage
 
 ### 1. Database Manager
 
@@ -232,7 +232,7 @@ transaction(fn() =>   // convenience wrapper
 
 Helpers are thin wrappers around `DatabaseManager` and the connection’s `schema()` / `transaction()` methods.
 
-## 📐 Schema Builder
+## Schema Builder
 
 The package includes a lightweight schema builder.
 
@@ -271,7 +271,7 @@ $db->schema()->drop('users');
 $db->schema()->dropIfExists('users');
 ```
 
-## 🗄 Supported Column Types
+## Supported Column Types
 
 -   Integers: `id`, `integer`, `bigInteger`, `mediumInteger`, `smallInteger`, `tinyInteger`
 -   Floats: `decimal`, `double`, `float`
@@ -283,7 +283,7 @@ $db->schema()->dropIfExists('users');
 -   Indexes: `index`, `unique`, `primary`
 -   Foreign keys with `foreign()` / `references()` / `on()` and `onDelete()` / `onUpdate()` helpers
 
-## 🚦 Migrations
+## Migrations
 
 The package includes a migration system (designed to be used via the CLI).
 
@@ -314,7 +314,7 @@ return new class extends Migration {
 };
 ```
 
-## 🧬 ORM (ActiveRecord / Eloquent‑style)
+## ORM (ActiveRecord / Eloquent‑style)
 
 **Since 1.3.0**, the package includes a complete ORM layer:
 
@@ -371,7 +371,7 @@ $user->save();
 $user->delete();
 ```
 
-## 🔗 Relationships
+## Relationships
 
 Available relations:
 
@@ -408,7 +408,7 @@ $user->posts;
 $user->load('posts');
 ```
 
-## 🧹 Soft Deletes
+## Soft Deletes
 
 ```php
 use Codemonster\Database\Traits\SoftDeletes;
@@ -423,7 +423,7 @@ class User extends Model {
 -   `User::onlyTrashed()`
 -   `User::withTrashed()`
 
-## 🧰 CLI Tool
+## CLI Tool
 
 A standalone CLI ships with the package:
 
@@ -455,6 +455,8 @@ vendor/bin/database migrate:status
 vendor/bin/database make:migration CreatePostsTable
 ```
 
+Migration names must be CamelCase using only Latin letters (e.g., `CreateUsersTable`). Names that include other symbols or casing styles are rejected.
+
 Default migrations directory:
 
 ```text
@@ -467,16 +469,16 @@ You can override paths via the migration kernel/path resolver:
 $kernel->getPathResolver()->addPath('/path/to/migrations');
 ```
 
-## 🧪 Tests
+## Tests
 
 ```bash
 composer test
 ```
 
-## 👨‍💻 Author
+## Author
 
 [**Kirill Kolesnikov**](https://github.com/KolesnikovKirill)
 
-## 📜 License
+## License
 
 [MIT](https://github.com/codemonster-ru/database/blob/main/LICENSE)
