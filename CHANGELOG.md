@@ -2,6 +2,18 @@
 
 All significant changes to this project will be documented in this file.
 
+## [1.6.0] - 2025-12-22
+
+### Added
+
+-   **CLI db:wipe:** Drop all tables in the database with confirmation and `--force`.
+-   **CLI db:truncate:** Remove all data except the migrations table, with confirmation and `--force`.
+-   **CLI tests:** Coverage for wipe and truncate commands.
+
+### Changed
+
+-   CLI output standardized on `echo` for stdout; errors remain on stderr.
+
 ## [1.5.0] - 2025-12-21
 
 ### Added

@@ -14,6 +14,8 @@ use Codemonster\Database\CLI\Commands\StatusCommand;
 use Codemonster\Database\CLI\Commands\MakeMigrationCommand;
 use Codemonster\Database\CLI\Commands\SeedCommand;
 use Codemonster\Database\CLI\Commands\MakeSeedCommand;
+use Codemonster\Database\CLI\Commands\WipeCommand;
+use Codemonster\Database\CLI\Commands\TruncateCommand;
 
 class DatabaseCLIKernel
 {
@@ -61,6 +63,8 @@ class DatabaseCLIKernel
         $this->commands->register(new MakeMigrationCommand($this->paths));
         $this->commands->register(new SeedCommand($this->seeder));
         $this->commands->register(new MakeSeedCommand($this->seedPaths));
+        $this->commands->register(new WipeCommand($this->migrator->getConnection()));
+        $this->commands->register(new TruncateCommand($this->migrator->getConnection()));
     }
 
     public function handle(array $argv): int
