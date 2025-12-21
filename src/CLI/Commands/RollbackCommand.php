@@ -30,13 +30,13 @@ class RollbackCommand implements CommandInterface
         $rolled = $this->migrator->rollback($step);
 
         if (empty($rolled)) {
-            fwrite(STDOUT, "Nothing to rollback.\n");
+            echo "Nothing to rollback.\n";
 
             return 0;
         }
 
         foreach ($rolled as $name) {
-            fwrite(STDOUT, "Rolled back: {$name}\n");
+            echo "Rolled back: {$name}\n";
         }
 
         return 0;

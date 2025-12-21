@@ -471,6 +471,30 @@ vendor/bin/database migrate:rollback
 vendor/bin/database migrate:status
 ```
 
+### Wipe database
+
+```bash
+vendor/bin/database db:wipe
+```
+
+Force wipe without confirmation:
+
+```bash
+vendor/bin/database db:wipe --force
+```
+
+### Clean database data (keep migrations table)
+
+```bash
+vendor/bin/database db:truncate
+```
+
+Force clean without confirmation:
+
+```bash
+vendor/bin/database db:truncate --force
+```
+
 ### Create a migration
 
 ```bash

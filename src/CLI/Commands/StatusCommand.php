@@ -29,22 +29,22 @@ class StatusCommand implements CommandInterface
         $status = $this->migrator->getStatus();
 
         if (empty($status)) {
-            fwrite(STDOUT, "No migrations found.\n");
+            echo "No migrations found.\n";
 
             return 0;
         }
 
-        fwrite(STDOUT, sprintf("%-8s  %-60s\n", 'Batch', 'Migration'));
-        fwrite(STDOUT, str_repeat('-', 72) . "\n");
+        echo sprintf("%-8s  %-60s\n", 'Batch', 'Migration');
+        echo str_repeat('-', 72) . "\n";
 
         foreach ($status as $item) {
             $batch = $item['batch'] === null ? '-' : (string) $item['batch'];
 
-            fwrite(STDOUT, sprintf(
+            echo sprintf(
                 "%-8s  %-60s\n",
                 $batch,
                 $item['migration']
-            ));
+            );
         }
 
         return 0;

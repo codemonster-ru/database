@@ -30,7 +30,7 @@ class MakeMigrationCommand implements CommandInterface
 
         if (!$name) {
             fwrite(STDERR, "Migration name is required.\n");
-            fwrite(STDOUT, "Usage: make:migration CreateUsersTable\n");
+            echo "Usage: make:migration CreateUsersTable\n";
 
             return 1;
         }
@@ -66,7 +66,7 @@ class MakeMigrationCommand implements CommandInterface
 
         file_put_contents($fullPath, $this->stub($name));
 
-        fwrite(STDOUT, "Created migration: {$fullPath}\n");
+        echo "Created migration: {$fullPath}\n";
 
         return 0;
     }

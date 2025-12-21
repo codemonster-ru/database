@@ -134,6 +134,11 @@ class Migrator
         return $files;
     }
 
+    public function getConnection(): ConnectionInterface
+    {
+        return $this->connection;
+    }
+
     /**
      * Load migration instance from file.
      */

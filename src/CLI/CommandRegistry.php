@@ -53,14 +53,14 @@ class CommandRegistry
 
     protected function printHelp(): void
     {
-        fwrite(STDOUT, "Available commands:\n");
+        echo "Available commands:\n";
 
         foreach ($this->commands as $cmd) {
-            fwrite(STDOUT, sprintf(
+            echo sprintf(
                 "  %-20s %s\n",
                 $cmd->signature(),
                 $cmd->description()
-            ));
+            );
         }
     }
 }

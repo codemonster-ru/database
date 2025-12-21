@@ -29,13 +29,13 @@ class MigrateCommand implements CommandInterface
         $executed = $this->migrator->migrate();
 
         if (empty($executed)) {
-            fwrite(STDOUT, "Nothing to migrate.\n");
+            echo "Nothing to migrate.\n";
 
             return 0;
         }
 
         foreach ($executed as $name) {
-            fwrite(STDOUT, "Migrated: {$name}\n");
+            echo "Migrated: {$name}\n";
         }
 
         return 0;
