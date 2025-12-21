@@ -19,7 +19,7 @@ class ModelTest extends TestCase
 
         // seed some rows
         $this->conn->tables['users'] = [
-            ['id' => 1, 'name' => 'Kirill', 'email' => 'k@example.com'],
+            ['id' => 1, 'name' => 'Vasya', 'email' => 'v@example.com'],
         ];
     }
 
@@ -28,7 +28,7 @@ class ModelTest extends TestCase
         $user = User::find(1);
 
         $this->assertInstanceOf(User::class, $user);
-        $this->assertEquals('Kirill', $user->name);
+        $this->assertEquals('Vasya', $user->name);
     }
 
     public function test_create_inserts_row()
