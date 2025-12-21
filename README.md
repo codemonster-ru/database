@@ -291,6 +291,8 @@ The package includes a migration system (designed to be used via the CLI).
 -   `migrate:rollback`
 -   `migrate:status`
 -   `make:migration`
+-   `seed`
+-   `make:seed`
 
 ### Example migration
 
@@ -310,6 +312,26 @@ return new class extends Migration {
     public function down(): void
     {
         schema()->drop('posts');
+    }
+};
+```
+
+## Seeders
+
+The package includes a lightweight seeding system (via the CLI).
+
+### Example seeder
+
+```php
+use Codemonster\Database\Seeders\Seeder;
+
+return new class extends Seeder {
+    public function run(): void
+    {
+        db()->table('users')->insert([
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+        ]);
     }
 };
 ```
@@ -468,6 +490,33 @@ You can override paths via the migration kernel/path resolver:
 ```php
 $kernel->getPathResolver()->addPath('/path/to/migrations');
 ```
+
+### Running seeders
+
+```bash
+vendor/bin/database seed
+```
+
+### Create a seeder
+
+```bash
+vendor/bin/database make:seed UsersSeeder
+```
+
+Seed names must be CamelCase using only Latin letters (e.g., `UsersSeeder`). Names that include other symbols or casing styles are rejected.
+
+Default seeds directory:
+
+```text
+./database/seeds
+```
+
+You can override paths via the seed kernel/path resolver:
+
+```php
+$kernel->getSeedPathResolver()->addPath('/path/to/seeds');
+```
+
 
 ## Tests
 

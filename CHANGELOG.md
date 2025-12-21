@@ -2,6 +2,19 @@
 
 All significant changes to this project will be documented in this file.
 
+## [1.5.0] - 2025-12-21
+
+### Added
+
+-   **Seeders:** New seeding system with `Seeder`, `SeederRunner`, and `SeedPathResolver`.
+-   **CLI seed commands:** `seed` and `make:seed` with configurable default path (`./database/seeds`).
+-   **Seeder tests:** Coverage for runner behavior, path resolver, and CLI commands.
+-   **Docs:** README updated with seeder usage and configuration examples.
+
+### Changed
+
+-   CLI seed command output now uses stdout consistently for testability.
+
 ## [1.4.3] - 2025-12-10
 
 ### Fixed
