@@ -3,6 +3,7 @@
 namespace Codemonster\Database\Migrations;
 
 use Codemonster\Database\Contracts\ConnectionInterface;
+use PDO;
 
 class MigrationRepository
 {
@@ -20,16 +21,37 @@ class MigrationRepository
 
     public function ensureTableExists(): void
     {
-        $sql = <<<SQL
-        CREATE TABLE IF NOT EXISTS `{$this->table}` (
-            `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-            `migration` VARCHAR(255) NOT NULL,
-            `batch` INT NOT NULL,
-            PRIMARY KEY (`id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-        SQL;
+        $driver = $this->getDriverName();
+
+        if ($driver === 'sqlite') {
+            $sql = <<<SQL
+            CREATE TABLE IF NOT EXISTS "{$this->table}" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "migration" TEXT NOT NULL,
+                "batch" INTEGER NOT NULL
+            );
+            SQL;
+        } else {
+            $sql = <<<SQL
+            CREATE TABLE IF NOT EXISTS `{$this->table}` (
+                `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `migration` VARCHAR(255) NOT NULL,
+                `batch` INT NOT NULL,
+                PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            SQL;
+        }
 
         $this->connection->statement($sql);
+    }
+
+    protected function getDriverName(): ?string
+    {
+        try {
+            return $this->connection->getPdo()->getAttribute(PDO::ATTR_DRIVER_NAME);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**

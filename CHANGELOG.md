@@ -2,6 +2,29 @@
 
 All significant changes to this project will be documented in this file.
 
+## [2.0.0] - 2025-12-22
+
+### Added
+
+-   **Schema:** `GrammarResolver` and `Schema::forConnection()` to centralize grammar selection.
+-   **QueryBuilder:** configurable empty `whereIn`/`whereNotIn` behavior.
+-   **Docs/typing:** richer PHPDoc generics for ModelQuery/relations and query builder return shapes.
+
+### Changed
+
+-   **QueryBuilder:** improved alias handling for `select/value/pluck` and `table.*` wrapping.
+-   **Schema:** SQLite migration table DDL now uses SQLite-specific syntax.
+
+### Fixed
+
+-   **SoftDeletes:** unsaved models no longer insert on delete.
+-   **ModelQuery:** methods that return values now return the builder result (not always `$this`).
+-   **Schema:** unified MySQL grammar to a single canonical class.
+
+### Tests
+
+-   Expanded coverage across QueryBuilder, Schema/Grammar, migrations, and transactions.
+
 ## [1.6.0] - 2025-12-22
 
 ### Added

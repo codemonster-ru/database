@@ -7,6 +7,10 @@ use Codemonster\Database\Contracts\QueryBuilderInterface;
 
 class QueryBuilder implements QueryBuilderInterface
 {
+    public const EMPTY_CONDITION_NONE = 'none';
+    public const EMPTY_CONDITION_ALL = 'all';
+    public const EMPTY_CONDITION_EXCEPTION = 'exception';
+
     protected ConnectionInterface $connection;
 
     protected string $table;
@@ -34,6 +38,9 @@ class QueryBuilder implements QueryBuilderInterface
     /** @var array<int, array<string, mixed>> */
     protected array $havings = [];
 
+    protected string $emptyWhereInBehavior = self::EMPTY_CONDITION_NONE;
+    protected string $emptyWhereNotInBehavior = self::EMPTY_CONDITION_ALL;
+
     public function __construct(ConnectionInterface $connection, string $table)
     {
         $this->connection = $connection;
@@ -45,7 +52,10 @@ class QueryBuilder implements QueryBuilderInterface
     // Basic query setup
     // ------------------------------------------------------
 
-    public function select(string|array ...$columns): self
+    /**
+     * @param string|array<int, string|RawExpression> ...$columns
+     */
+    public function select(string|array ...$columns): static
     {
         if (count($columns) === 1 && is_array($columns[0])) {
             $columns = $columns[0];
@@ -78,6 +88,9 @@ class QueryBuilder implements QueryBuilderInterface
     // WHERE
     // ------------------------------------------------------
 
+    /**
+     * @param string|callable(static):void $column
+     */
     public function where(string|callable $column, mixed $operator = null, mixed $value = null, string $boolean = 'AND'): static
     {
         if (is_callable($column)) {
@@ -115,6 +128,10 @@ class QueryBuilder implements QueryBuilderInterface
 
     public function whereIn(string $column, array $values, string $boolean = 'AND'): static
     {
+        if (empty($values)) {
+            return $this->handleEmptyIn($this->emptyWhereInBehavior, $boolean);
+        }
+
         $condition = new WhereCondition(
             $column,
             'IN',
@@ -135,6 +152,10 @@ class QueryBuilder implements QueryBuilderInterface
 
     public function whereNotIn(string $column, array $values, string $boolean = 'AND'): static
     {
+        if (empty($values)) {
+            return $this->handleEmptyIn($this->emptyWhereNotInBehavior, $boolean);
+        }
+
         $condition = new WhereCondition(
             $column,
             'NOT IN',
@@ -146,6 +167,51 @@ class QueryBuilder implements QueryBuilderInterface
         $this->where->addCondition($condition);
 
         return $this;
+    }
+
+    public function setEmptyWhereInBehavior(string $behavior): static
+    {
+        $this->assertEmptyInBehavior($behavior);
+
+        $this->emptyWhereInBehavior = $behavior;
+
+        return $this;
+    }
+
+    public function setEmptyWhereNotInBehavior(string $behavior): static
+    {
+        $this->assertEmptyInBehavior($behavior);
+
+        $this->emptyWhereNotInBehavior = $behavior;
+
+        return $this;
+    }
+
+    protected function assertEmptyInBehavior(string $behavior): void
+    {
+        $allowed = [
+            self::EMPTY_CONDITION_NONE,
+            self::EMPTY_CONDITION_ALL,
+            self::EMPTY_CONDITION_EXCEPTION,
+        ];
+
+        if (!in_array($behavior, $allowed, true)) {
+            throw new \InvalidArgumentException(
+                sprintf('Invalid empty IN behavior "%s".', $behavior)
+            );
+        }
+    }
+
+    protected function handleEmptyIn(string $behavior, string $boolean): static
+    {
+        return match ($behavior) {
+            self::EMPTY_CONDITION_NONE => $this->whereRaw('0 = 1', [], $boolean),
+            self::EMPTY_CONDITION_ALL => $this->whereRaw('1 = 1', [], $boolean),
+            self::EMPTY_CONDITION_EXCEPTION => throw new \InvalidArgumentException(
+                'Empty values are not allowed for whereIn/whereNotIn.'
+            ),
+            default => $this->whereRaw('0 = 1', [], $boolean),
+        };
     }
 
     public function orWhereNotIn(string $column, array $values): static
@@ -372,7 +438,7 @@ class QueryBuilder implements QueryBuilderInterface
     // ORDER / LIMIT / OFFSET
     // ------------------------------------------------------
 
-    public function orderBy(string $column, string $direction = 'asc'): self
+    public function orderBy(string $column, string $direction = 'asc'): static
     {
         $this->orders[] = [
             'column' => $column,
@@ -392,14 +458,14 @@ class QueryBuilder implements QueryBuilderInterface
         return $this;
     }
 
-    public function limit(int $value): self
+    public function limit(int $value): static
     {
         $this->limit = max(0, $value);
 
         return $this;
     }
 
-    public function offset(int $value): self
+    public function offset(int $value): static
     {
         $this->offset = max(0, $value);
 
@@ -410,6 +476,9 @@ class QueryBuilder implements QueryBuilderInterface
     // FETCHING
     // ------------------------------------------------------
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function get(): array
     {
         [$sql, $bindings] = $this->compileSelect();
@@ -417,6 +486,9 @@ class QueryBuilder implements QueryBuilderInterface
         return $this->connection->select($sql, $bindings);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function first(): ?array
     {
         $clone = clone $this;
@@ -432,6 +504,9 @@ class QueryBuilder implements QueryBuilderInterface
         return $this->compileSelect()[0];
     }
 
+    /**
+     * @return array<int, mixed>
+     */
     public function getBindings(): array
     {
         return $this->compileSelect()[1];
@@ -815,27 +890,41 @@ class QueryBuilder implements QueryBuilderInterface
 
     public function value(string $column): mixed
     {
-        $result = $this->select($column)->first();
+        [$selectColumn, $resultKey] = $this->normalizeSelectAndKey($column);
+
+        $result = $this->select($selectColumn)->first();
 
         if (!$result) {
             return null;
         }
 
-        return $result[$column] ?? null;
+        return $result[$resultKey] ?? null;
     }
 
+    /**
+     * @return array<int, mixed>|array<string, mixed>
+     */
     public function pluck(string $column, ?string $key = null): array
     {
-        $this->select($key ? [$column, $key] : [$column]);
+        [$selectColumn, $valueKey] = $this->normalizeSelectAndKey($column);
+        $selects = [$selectColumn];
+        $keyName = null;
+
+        if ($key !== null) {
+            [$selectKey, $keyName] = $this->normalizeSelectAndKey($key);
+            $selects[] = $selectKey;
+        }
+
+        $this->select($selects);
 
         $rows = $this->get();
         $result = [];
 
         foreach ($rows as $row) {
-            if ($key) {
-                $result[$row[$key]] = $row[$column];
+            if ($keyName !== null) {
+                $result[$row[$keyName]] = $row[$valueKey];
             } else {
-                $result[] = $row[$column];
+                $result[] = $row[$valueKey];
             }
         }
 
@@ -852,6 +941,9 @@ class QueryBuilder implements QueryBuilderInterface
         return $this;
     }
 
+    /**
+     * @return array{data: array<int, array<string, mixed>>, per_page: int, current_page: int, next_page: int|null, prev_page: int|null}
+     */
     public function simplePaginate(int $perPage = 15, int $page = 1): array
     {
         $page = max(1, $page);
@@ -887,17 +979,81 @@ class QueryBuilder implements QueryBuilderInterface
 
     protected function wrapColumn(string $column): string
     {
-        if ($column === '*') {
+        [$expr, $alias] = $this->splitAlias($column);
+
+        if ($alias !== null) {
+            return $this->wrapExpression($expr) . ' AS ' . $this->wrapIdentifier($alias);
+        }
+
+        return $this->wrapExpression($expr);
+    }
+
+    /**
+     * @return array{0: string, 1: string|null}
+     */
+    protected function splitAlias(string $value): array
+    {
+        if (preg_match('/\s+as\s+/i', $value)) {
+            [$expr, $alias] = preg_split('/\s+as\s+/i', $value, 2);
+
+            return [trim($expr), trim($alias)];
+        }
+
+        if (preg_match('/^(.+)\s+([A-Za-z_][A-Za-z0-9_]*)$/', trim($value), $matches)) {
+            return [trim($matches[1]), $matches[2]];
+        }
+
+        return [$value, null];
+    }
+
+    protected function wrapExpression(string $expr): string
+    {
+        if ($expr === '*') {
             return '*';
         }
 
-        if (str_contains($column, '.')) {
-            [$table, $col] = explode('.', $column, 2);
-
-            return $this->wrapTable($table) . '.' . $this->wrapColumn($col);
+        if (str_contains($expr, '(') || str_contains($expr, ')')) {
+            return $expr;
         }
 
-        return '`' . str_replace('`', '``', $column) . '`';
+        if (str_contains($expr, '.')) {
+            [$table, $col] = explode('.', $expr, 2);
+
+            if ($col === '*') {
+                return $this->wrapTable($table) . '.*';
+            }
+
+            return $this->wrapTable($table) . '.' . $this->wrapIdentifier($col);
+        }
+
+        return $this->wrapIdentifier($expr);
+    }
+
+    protected function wrapIdentifier(string $identifier): string
+    {
+        return '`' . str_replace('`', '``', $identifier) . '`';
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    protected function normalizeSelectAndKey(string $column): array
+    {
+        [$expr, $alias] = $this->splitAlias($column);
+        $key = $alias ?? $this->extractColumnKey($expr);
+
+        return [$column, $key];
+    }
+
+    protected function extractColumnKey(string $column): string
+    {
+        if (str_contains($column, '.')) {
+            $parts = explode('.', $column);
+
+            return $parts[count($parts) - 1];
+        }
+
+        return $column;
     }
 
     protected function newScopedBuilder(WhereGroup $group): static

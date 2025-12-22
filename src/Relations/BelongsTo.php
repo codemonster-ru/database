@@ -4,6 +4,11 @@ namespace Codemonster\Database\Relations;
 
 use Codemonster\Database\ORM\Model;
 
+/**
+ * @template TRelated of Model
+ * @template TParent of Model
+ * @extends Relation<TRelated, TParent>
+ */
 class BelongsTo extends Relation
 {
     protected string $foreignKey;
@@ -17,6 +22,9 @@ class BelongsTo extends Relation
         $this->ownerKey   = $ownerKey;
     }
 
+    /**
+     * @return TRelated|null
+     */
     public function getResults(): ?Model
     {
         $value = $this->parent->{$this->foreignKey};

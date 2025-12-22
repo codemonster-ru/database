@@ -23,6 +23,9 @@ interface ConnectionInterface
 
     public function statement(string $query, array $params = []): bool;
 
+    /**
+     * @return \Codemonster\Database\Contracts\QueryBuilderInterface
+     */
     public function table(string $table): QueryBuilderInterface;
 
     public function beginTransaction(): bool;

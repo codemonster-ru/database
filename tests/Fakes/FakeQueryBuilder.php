@@ -38,7 +38,7 @@ class FakeQueryBuilder extends QueryBuilder
 
         $this->wheres[] = [
             'column'  => $column,
-            'operator'=> $operator,
+            'operator' => $operator,
             'value'   => $value,
             'boolean' => strtoupper($boolean),
             'type'    => 'basic',
@@ -129,6 +129,7 @@ class FakeQueryBuilder extends QueryBuilder
         $last    = empty($current) ? 0 : ((int) ($current[array_key_last($current)]['id'] ?? count($current)));
 
         $values['id'] = $last + 1;
+
         $this->fake->tables[$this->table][] = $values;
 
         return $values['id'];
@@ -155,6 +156,7 @@ class FakeQueryBuilder extends QueryBuilder
         foreach ($this->fake->tables[$this->table] as $idx => $row) {
             if ($this->matchesWhere($row)) {
                 unset($this->fake->tables[$this->table][$idx]);
+
                 $deleted++;
             }
         }
@@ -174,14 +176,14 @@ class FakeQueryBuilder extends QueryBuilder
         return !empty($this->get());
     }
 
-    public function limit(int $value): self
+    public function limit(int $value): static
     {
         $this->limit = $value;
 
         return $this;
     }
 
-    public function offset(int $value): self
+    public function offset(int $value): static
     {
         $this->offset = $value;
 
@@ -232,6 +234,7 @@ class FakeQueryBuilder extends QueryBuilder
         ));
 
         $relatedIds = [];
+
         foreach ($pivotRows as $pivot) {
             if ($filter) {
                 $cond = $filter[0];

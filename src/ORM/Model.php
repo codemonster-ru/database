@@ -66,6 +66,9 @@ abstract class Model implements \JsonSerializable
         return call_user_func(static::$connectionResolver, static::class);
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
     public static function query(): ModelQuery
     {
         $instance = new static();
@@ -76,6 +79,9 @@ abstract class Model implements \JsonSerializable
         return new ModelQuery($builder, static::class);
     }
 
+    /**
+     * @return ModelCollection<static>
+     */
     public static function all(): ModelCollection
     {
         return static::query()->get();
@@ -101,6 +107,8 @@ abstract class Model implements \JsonSerializable
 
     /**
      * Hydration of an array of strings into a collection of models.
+     *
+     * @return ModelCollection<static>
      */
     public static function hydrate(array $rows): ModelCollection
     {
@@ -162,14 +170,14 @@ abstract class Model implements \JsonSerializable
 
     public function delete(): bool
     {
+        if (!$this->exists) {
+            return false;
+        }
+
         // support for soft deletes (via trait)
         if (method_exists($this, 'runSoftDelete')) {
             /** @var callable $m */
             return $this->runSoftDelete();
-        }
-
-        if (!$this->exists) {
-            return false;
         }
 
         /** @var QueryBuilder $builder */
@@ -365,6 +373,11 @@ abstract class Model implements \JsonSerializable
         return $results;
     }
 
+    /**
+     * @template TRelated of Model
+     * @param class-string<TRelated> $related
+     * @return HasOne<TRelated, static>
+     */
     public function hasOne(string $related, ?string $foreignKey = null, ?string $localKey = null): HasOne
     {
         /** @var Model $instance */
@@ -382,6 +395,11 @@ abstract class Model implements \JsonSerializable
         );
     }
 
+    /**
+     * @template TRelated of Model
+     * @param class-string<TRelated> $related
+     * @return HasMany<TRelated, static>
+     */
     public function hasMany(string $related, ?string $foreignKey = null, ?string $localKey = null): HasMany
     {
         /** @var Model $instance */
@@ -399,6 +417,11 @@ abstract class Model implements \JsonSerializable
         );
     }
 
+    /**
+     * @template TRelated of Model
+     * @param class-string<TRelated> $related
+     * @return BelongsTo<TRelated, static>
+     */
     public function belongsTo(string $related, ?string $foreignKey = null, ?string $ownerKey = null): BelongsTo
     {
         /** @var Model $instance */
@@ -417,6 +440,11 @@ abstract class Model implements \JsonSerializable
         );
     }
 
+    /**
+     * @template TRelated of Model
+     * @param class-string<TRelated> $related
+     * @return BelongsToMany<TRelated, static>
+     */
     public function belongsToMany(
         string $related,
         ?string $pivotTable = null,

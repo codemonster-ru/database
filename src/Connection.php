@@ -6,7 +6,6 @@ use Codemonster\Database\Contracts\ConnectionInterface;
 use Codemonster\Database\Contracts\QueryBuilderInterface;
 use Codemonster\Database\Exceptions\QueryException;
 use Codemonster\Database\Query\QueryBuilder;
-use Codemonster\Database\Schema\MySqlGrammar;
 use Codemonster\Database\Schema\Schema;
 use PDO;
 use PDOException;
@@ -25,7 +24,7 @@ class Connection implements ConnectionInterface
     {
         $driver = $config['driver'] ?? 'mysql';
 
-        return match ($driver) {
+        match ($driver) {
             'mysql'  => $this->connectMySql($config),
             'sqlite' => $this->connectSqlite($config),
             default  => throw new InvalidArgumentException("Unsupported driver [$driver].")
@@ -166,6 +165,11 @@ class Connection implements ConnectionInterface
         return $this->pdo->rollBack();
     }
 
+    /**
+     * @template T
+     * @param callable(self):T $callback
+     * @return T
+     */
     public function transaction(callable $callback): mixed
     {
         $this->beginTransaction();
@@ -191,6 +195,6 @@ class Connection implements ConnectionInterface
 
     public function schema(): Schema
     {
-        return new Schema($this, new MySqlGrammar());
+        return Schema::forConnection($this);
     }
 }

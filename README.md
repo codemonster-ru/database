@@ -81,6 +81,15 @@ $users = $db->table('users')
     ->get();
 ```
 
+#### SELECT with aliases
+
+```php
+$rows = $db->table('users')
+    ->select('users.name label', 'COUNT(*) total')
+    ->groupBy('users.name')
+    ->get();
+```
+
 #### INSERT
 
 ```php
@@ -183,6 +192,19 @@ $email = $db->table('users')
 
 $names = $db->table('users')->pluck('name');
 $pairs = $db->table('users')->pluck('email', 'id'); // [id => email]
+
+// Aliases are supported:
+// $db->table('users')->pluck('users.name label', 'users.id key');
+// $db->table('users')->value('COUNT(*) total');
+```
+
+#### Value / Pluck with aliases
+
+```php
+$pairs = $db->table('users')
+    ->pluck('users.name label', 'users.id key'); // [id => name]
+
+$total = $db->table('users')->value('COUNT(*) total');
 ```
 
 #### Pagination
@@ -199,6 +221,28 @@ $page = $db->table('posts')->simplePaginate(20, $currentPage);
 //     'next_page'   => 2,
 //     'prev_page'   => null,
 // ];
+```
+
+#### Empty whereIn / whereNotIn
+
+```php
+$db->table('users')
+    ->setEmptyWhereInBehavior(\Codemonster\Database\Query\QueryBuilder::EMPTY_CONDITION_EXCEPTION)
+    ->whereIn('id', []);
+```
+
+Available behaviors:
+
+-   `EMPTY_CONDITION_NONE` (default for `whereIn`) -> executes `0 = 1`
+-   `EMPTY_CONDITION_ALL` (default for `whereNotIn`) -> executes `1 = 1`
+-   `EMPTY_CONDITION_EXCEPTION` -> throws `InvalidArgumentException`
+
+You can override `whereNotIn` separately:
+
+```php
+$db->table('users')
+    ->setEmptyWhereNotInBehavior(\Codemonster\Database\Query\QueryBuilder::EMPTY_CONDITION_NONE)
+    ->whereNotIn('id', []);
 ```
 
 ### 3. Transactions
@@ -244,6 +288,7 @@ The package includes a lightweight schema builder.
 ```php
 use Codemonster\Database\Schema\Blueprint;
 
+// You can also use Schema::forConnection($db) if you need a schema instance directly.
 $db->schema()->create('users', function (Blueprint $table) {
     $table->id();
     $table->string('name');
@@ -261,6 +306,11 @@ $db->schema()->table('users', function (Blueprint $table) {
     $table->integer('age')->default(0);
 });
 ```
+
+### SQLite notes
+
+-   SQLite supports `ALTER TABLE` only for a subset of operations; some drop operations are ignored.
+-   Foreign keys are emitted inline during `CREATE TABLE`.
 
 ### Dropping a table
 

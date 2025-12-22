@@ -5,6 +5,11 @@ namespace Codemonster\Database\Relations;
 use Codemonster\Database\ORM\Model;
 use Codemonster\Database\ORM\ModelCollection;
 
+/**
+ * @template TRelated of Model
+ * @template TParent of Model
+ * @extends Relation<TRelated, TParent>
+ */
 class BelongsToMany extends Relation
 {
     protected string $pivotTable;
@@ -32,6 +37,9 @@ class BelongsToMany extends Relation
         $this->relatedKey     = $relatedKey;
     }
 
+    /**
+     * @return ModelCollection<TRelated>
+     */
     public function getResults(): ModelCollection
     {
         $parentId    = $this->parent->{$this->parentKey};
