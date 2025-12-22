@@ -21,4 +21,16 @@ class AggregateTest extends TestCase
 
         $this->assertStringNotContainsString('COUNT', $sql);
     }
+
+    public function test_exists_returns_true_and_does_not_mutate_builder()
+    {
+        $connection = $this->fakeConnection();
+        $qb = new QueryBuilder($connection, 'users');
+
+        $expectedSql = 'SELECT 1 FROM `users` LIMIT 1';
+        $connection->results[$expectedSql] = [['1' => 1]];
+
+        $this->assertTrue($qb->exists());
+        $this->assertSame('SELECT * FROM `users`', $qb->toSql());
+    }
 }

@@ -53,4 +53,25 @@ class ModelQueryTest extends TestCase
             User::query()->where('name', 'Missing')->exists()
         );
     }
+
+    public function test_value_and_pluck_return_results()
+    {
+        $names = User::query()->pluck('name');
+        $first = User::query()->value('name');
+
+        $this->assertSame(['First', 'Second'], $names);
+        $this->assertSame('First', $first);
+    }
+
+    public function test_simple_paginate_returns_array()
+    {
+        $result = User::query()->simplePaginate(1, 1);
+
+        $this->assertIsArray($result);
+        $this->assertSame(1, $result['per_page']);
+        $this->assertSame(1, $result['current_page']);
+        $this->assertSame(2, $result['next_page']);
+        $this->assertNull($result['prev_page']);
+        $this->assertCount(1, $result['data']);
+    }
 }

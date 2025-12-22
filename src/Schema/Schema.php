@@ -16,6 +16,13 @@ class Schema
         $this->grammar = $grammar;
     }
 
+    public static function forConnection(ConnectionInterface $connection): self
+    {
+        $resolver = new GrammarResolver();
+
+        return new self($connection, $resolver->resolve($connection));
+    }
+
     /**
      * CREATE TABLE
      */

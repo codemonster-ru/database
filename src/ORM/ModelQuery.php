@@ -4,11 +4,19 @@ namespace Codemonster\Database\ORM;
 
 use Codemonster\Database\Query\QueryBuilder;
 
+/**
+ * @template TModel of Model
+ */
 class ModelQuery
 {
+    /** @var QueryBuilder */
     protected QueryBuilder $builder;
+    /** @var class-string<TModel> */
     protected string $modelClass;
 
+    /**
+     * @param class-string<TModel> $modelClass
+     */
     public function __construct(QueryBuilder $builder, string $modelClass)
     {
         $this->builder = $builder;
@@ -20,6 +28,9 @@ class ModelQuery
         return $this->builder;
     }
 
+    /**
+     * @return ModelCollection<TModel>
+     */
     public function get(): ModelCollection
     {
         $rows = $this->builder->get();
@@ -30,6 +41,9 @@ class ModelQuery
         return $model::hydrate($rows);
     }
 
+    /**
+     * @return TModel|null
+     */
     public function first(): ?Model
     {
         $row = $this->builder->first();
@@ -54,14 +68,19 @@ class ModelQuery
         return (int) $this->builder->count();
     }
 
-    public function __call(string $name, array $arguments): self
+    /**
+     * @return mixed
+     */
+    public function __call(string $name, array $arguments): mixed
     {
         $result = $this->builder->$name(...$arguments);
 
         if ($result instanceof QueryBuilder) {
             $this->builder = $result;
+
+            return $this;
         }
 
-        return $this;
+        return $result;
     }
 }

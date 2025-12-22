@@ -62,6 +62,14 @@ class SoftDeletesTest extends TestCase
 
         $this->assertCount(2, $with);
     }
+
+    public function test_delete_returns_false_for_unsaved_model()
+    {
+        $user = new SoftDeletingUser(['name' => 'New']);
+
+        $this->assertFalse($user->delete());
+        $this->assertFalse($user->trashed());
+    }
 }
 
 class SoftDeletingUser extends User

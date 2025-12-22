@@ -5,6 +5,11 @@ namespace Codemonster\Database\Relations;
 use Codemonster\Database\ORM\Model;
 use Codemonster\Database\ORM\ModelCollection;
 
+/**
+ * @template TRelated of Model
+ * @template TParent of Model
+ * @extends Relation<TRelated, TParent>
+ */
 class HasMany extends Relation
 {
     protected string $foreignKey;
@@ -18,6 +23,9 @@ class HasMany extends Relation
         $this->localKey   = $localKey;
     }
 
+    /**
+     * @return ModelCollection<TRelated>
+     */
     public function getResults(): ModelCollection
     {
         $rows = $this->builder
