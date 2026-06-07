@@ -1,6 +1,6 @@
 <?php
 
-namespace Codemonster\Database\CLI;
+namespace Codemonster\Database\Console;
 
 use Codemonster\Database\Contracts\ConnectionInterface;
 use Codemonster\Database\Migrations\MigrationPathResolver;
@@ -8,16 +8,16 @@ use Codemonster\Database\Migrations\MigrationRepository;
 use Codemonster\Database\Migrations\Migrator;
 use Codemonster\Database\Seeders\SeedPathResolver;
 use Codemonster\Database\Seeders\SeederRunner;
-use Codemonster\Database\CLI\Commands\MigrateCommand;
-use Codemonster\Database\CLI\Commands\RollbackCommand;
-use Codemonster\Database\CLI\Commands\StatusCommand;
-use Codemonster\Database\CLI\Commands\MakeMigrationCommand;
-use Codemonster\Database\CLI\Commands\SeedCommand;
-use Codemonster\Database\CLI\Commands\MakeSeedCommand;
-use Codemonster\Database\CLI\Commands\WipeCommand;
-use Codemonster\Database\CLI\Commands\TruncateCommand;
+use Codemonster\Database\Console\Commands\MigrateCommand;
+use Codemonster\Database\Console\Commands\RollbackCommand;
+use Codemonster\Database\Console\Commands\StatusCommand;
+use Codemonster\Database\Console\Commands\MakeMigrationCommand;
+use Codemonster\Database\Console\Commands\SeedCommand;
+use Codemonster\Database\Console\Commands\MakeSeedCommand;
+use Codemonster\Database\Console\Commands\WipeCommand;
+use Codemonster\Database\Console\Commands\TruncateCommand;
 
-class DatabaseCLIKernel
+class DatabaseConsoleKernel
 {
     protected CommandRegistry $commands;
 
