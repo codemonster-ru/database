@@ -1,0 +1,1 @@
+Add initial QueryBuilder with SELECT, where, order, limit, offset and fluent API
